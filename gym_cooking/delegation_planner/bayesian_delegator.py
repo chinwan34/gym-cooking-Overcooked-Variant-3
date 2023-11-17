@@ -16,7 +16,7 @@ SubtaskAllocation = namedtuple("SubtaskAllocation", "subtask subtask_agent_names
 
 class BayesianDelegator(Delegator):
 
-    def __init__(self, agent_name, all_agent_names,
+    def __init__(self, agent_name, all_agent_names, all_agent_role_names,
             model_type, planner, none_action_prob):
         """Initializing Bayesian Delegator for agent_name.
 
@@ -32,6 +32,7 @@ class BayesianDelegator(Delegator):
         self.name = 'Bayesian Delegator'
         self.agent_name = agent_name
         self.all_agent_names = all_agent_names
+        self.all_agent_role_names = all_agent_role_names
         self.probs = None
         self.model_type = model_type
         self.priors = 'uniform' if model_type == 'up' else 'spatial'
@@ -176,13 +177,13 @@ class BayesianDelegator(Delegator):
         # A dictionary mapping agent name to a planner.
         # The planner is based on THIS agent's planner because agents are decentralized.
         planners = {}
-        for other_agent_name in self.all_agent_names:
+        for (other_agent_name, other_role_name) in self.all_agent_role_names:
             # Skip over myself.
             if other_agent_name != self.agent_name:
                 # Get most likely subtask and subtask agents for other agent
                 # based on my beliefs.
                 subtask, subtask_agent_names = self.select_subtask(
-                        agent_name=other_agent_name)
+                        agent_name=other_agent_name, role=other_role_name())
 
                 if subtask is None:
                     # Using cooperative backup_subtask for this agent's None subtask.
@@ -402,14 +403,33 @@ class BayesianDelegator(Delegator):
             subtask_allocs.append(subtask_alloc)
         return SubtaskAllocDistribution(subtask_allocs)
 
-    def select_subtask(self, agent_name):
+    def check_role_responsibilities(self, role, subTask):
+        if type(subTask) not in role.probableActions:
+            return False
+        return True
+    
+    def select_subtask(self, agent_name, role):
         """Return subtask and subtask_agent_names for agent with agent_name
         with max. probability."""
         max_subtask_alloc = self.probs.get_max()
         if max_subtask_alloc is not None:
             for t in max_subtask_alloc:
                 if agent_name in t.subtask_agent_names:
-                    return t.subtask, t.subtask_agent_names
+                        return t.subtask, t.subtask_agent_names
+        return None, agent_name
+    
+    def select_subtask2(self, agent_name, role):
+        """Return subtask and subtask_agent_names for agent with agent_name
+        with max. probability."""
+        max_subtask_alloc = self.probs.get_max()
+        if max_subtask_alloc is not None:
+            for t in max_subtask_alloc:
+                print(type(t.subtask))
+                if agent_name in t.subtask_agent_names:
+                    if self.check_role_responsibilities(role, t.subtask) == False:
+                        return None, t.subtask_agent_names
+                    else:
+                        return t.subtask, t.subtask_agent_names
         return None, agent_name
 
     def ensure_at_least_one_subtask(self):

@@ -6,6 +6,7 @@ from utils.agent import RealAgent, SimAgent, COLORS
 from utils.core import *
 from misc.game.gameplay import GamePlay
 from misc.metrics.metrics_bag import Bag
+from random import randrange
 
 import numpy as np
 import random
@@ -60,6 +61,10 @@ def initialize_agents(arglist):
     with open('utils/levels/{}.txt'.format(arglist.level), 'r') as f:
         phase = 1
         recipes = []
+        twoAgentsDone = False
+        i2 = 0
+        threeAgentsDone = False
+        i3 = 0
         for line in f:
             line = line.strip('\n')
             if line == '':
@@ -71,15 +76,37 @@ def initialize_agents(arglist):
 
             # phase 3: read in agent locations (up to num_agents)
             elif phase == 3:
-                if len(real_agents) < arglist.num_agents:
+                listofroles = [Chopper, Cooker, Deliverer]
+                listofroles2 = [ChoppingWaiter, CookingWaiter]
+
+                if (arglist.num_agents == 2) and (twoAgentsDone == False):
+                    print("Im in!")
                     loc = line.split(' ')
                     real_agent = RealAgent(
                             arglist=arglist,
                             name='agent-'+str(len(real_agents)+1),
                             id_color=COLORS[len(real_agents)],
-                            recipes=recipes)
+                            recipes=recipes,
+                            role=listofroles2[i2])
                     real_agents.append(real_agent)
+                    i2+=1
+                    print(len(real_agents))
+                    if len(real_agents) >= arglist.num_agents:
+                        twoAgentsDone = True
 
+                else:   
+                    if (threeAgentsDone == False) and (twoAgentsDone == False):
+                        loc = line.split(' ')
+                        real_agent = RealAgent(
+                                arglist=arglist,
+                                name='agent-'+str(len(real_agents)+1),
+                                id_color=COLORS[len(real_agents)],
+                                recipes=recipes,
+                                role=listofroles[i3%3])
+                        real_agents.append(real_agent)
+                        i3+=1
+                        if len(real_agents) >= arglist.num_agents:
+                            threeAgentsDone = True
     return real_agents
 
 def main_loop(arglist):
@@ -89,6 +116,7 @@ def main_loop(arglist):
     obs = env.reset()
     # game = GameVisualize(env)
     real_agents = initialize_agents(arglist=arglist)
+    print("Im here")
 
     # Info bag for saving pkl files
     bag = Bag(arglist=arglist, filename=env.filename)

@@ -94,6 +94,10 @@ class OvercookedEnvironment(gym.Env):
         with open('utils/levels/{}.txt'.format(level), 'r') as file:
             # Mark the phases of reading.
             phase = 1
+            twoAgentsDone = False
+            threeAgentsDone = False
+            i2=0
+            i3=0
             for line in file:
                 line = line.strip('\n')
                 if line == '':
@@ -126,13 +130,32 @@ class OvercookedEnvironment(gym.Env):
 
                 # Phase 3: Read in agent locations (up to num_agents).
                 elif phase == 3:
-                    if len(self.sim_agents) < num_agents:
+                    listofroles = [Chopper, Cooker, Deliverer]
+                    listofroles2 = [ChoppingWaiter, CookingWaiter]
+                    
+                    if (num_agents == 2) and (twoAgentsDone == False):
                         loc = line.split(' ')
                         sim_agent = SimAgent(
-                                name='agent-'+str(len(self.sim_agents)+1),
-                                id_color=COLORS[len(self.sim_agents)],
-                                location=(int(loc[0]), int(loc[1])))
+                            name='agent-'+str(len(self.sim_agents)+1),
+                            role=listofroles2[i2],
+                            id_color=COLORS[len(self.sim_agents)],
+                            location=(int(loc[0]), int(loc[1])))
                         self.sim_agents.append(sim_agent)
+                        i2 +=1
+                        if (len(self.sim_agents)) >= num_agents:
+                            twoAgentsDone = True
+                    else:      
+                        if (threeAgentsDone == False) and (twoAgentsDone == False):
+                            loc = line.split(' ')
+                            sim_agent = SimAgent(
+                                    name='agent-'+str(len(self.sim_agents)+1),
+                                    role=listofroles[i3%3],
+                                    id_color=COLORS[len(self.sim_agents)],
+                                    location=(int(loc[0]), int(loc[1])))
+                            self.sim_agents.append(sim_agent)
+                            i3 +=1
+                            if (len(self.sim_agents)) >= num_agents:
+                                threeAgentsDone = True
 
         self.distances = {}
         self.world.width = x+1
@@ -264,6 +287,9 @@ class OvercookedEnvironment(gym.Env):
 
     def get_agent_names(self):
         return [agent.name for agent in self.sim_agents]
+    
+    def get_agent_role_names(self):
+        return [(agent.name, agent.role) for agent in self.sim_agents]
 
     def run_recipes(self):
         """Returns different permutations of completing recipes."""

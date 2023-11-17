@@ -1,5 +1,6 @@
 # recipe planning
 import recipe_planner.utils as recipe
+from recipe_planner.utils import Get, Chop, Deliver, Merge
 
 # helpers
 import numpy as np
@@ -8,6 +9,31 @@ import random
 from termcolor import colored as color
 from itertools import combinations
 from collections import namedtuple
+
+class Role:
+    def __init__(self, probableActions):
+        self.probableActions = probableActions
+    
+class Cooker(Role):
+    def __init__(self, probableActions=(Get, Merge)):
+        self.probableActions = probableActions
+
+class Chopper(Role):
+    def __init__(self, probableActions=(Get, Chop)):
+        self.probableActions = probableActions
+
+class Deliverer(Role):
+    def __init__(self, probableActions=(Get, Deliver)):
+        self.probableActions = probableActions
+    
+class CookingWaiter(Role):
+    def __init__(self, probableActions=(Get, Merge, Deliver)):
+        self.probableActions = probableActions
+
+class ChoppingWaiter(Role):
+    def __init__(self, probableActions=(Get, Merge, Deliver)):
+        self.probableActions = probableActions
+    
 
 
 # -----------------------------------------------------------
