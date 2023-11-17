@@ -61,6 +61,7 @@ class GamePlay(Game):
         if self.on_init() == False:
             self._running = False
 
+
         while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
