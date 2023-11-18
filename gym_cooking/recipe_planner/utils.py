@@ -39,6 +39,26 @@ class Fresh(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Fresh', (obj,))
 
+class Uncleaned(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Uncleaned', (obj,))
+
+class Cleaned(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Cleaned', (obj,))
+
+class Unfried(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Unfried', (obj,))
+
+class Unbaked(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Unbaked', (obj,))
+
+class Uncooked(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Uncooked', (obj,))
+
 class Chopped(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Chopped', (obj,))
@@ -54,8 +74,6 @@ class Delivered(Predicate):
 class Merged(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Merged', (obj,))
-
-
 
 
 # ACTIONS
@@ -107,6 +125,61 @@ class Action:
         return next_state
 
 '''
+Clean(X)
+Pre: Uncleaned(X)
+Post: Cleaned(X)
+'''
+class Clean(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args= (obj,)
+
+        self.pre_default = [Uncleaned(obj)]
+        self.post_add_default = [Cleaned(obj)]
+
+        Action.__init__(self, 'Clean', pre, post_add)
+
+'''
+Fry(X)
+Pre: Unfried(X)
+Post: Cooked(X)
+'''
+class Fry(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args= (obj,)
+
+        self.pre_default = [Unfried(obj)]
+        self.post_add_default = [Cooked(obj)]
+
+        Action.__init__(self, 'Fry', pre, post_add)
+
+'''
+bake(X)
+Pre: Unbaked(X-Y), Merged(X-Y)
+Post: Cooked(X)
+'''
+class Bake(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args= (obj)
+
+        self.pre_default = [Unbaked(obj), Merged(obj)]
+        self.post_add_default = [Cooked(obj)]
+
+        Action.__init__(self, 'Bake', pre, post_add)
+
+'''
+cook(X)
+Pre: Uncooked(X)
+Post: Cooked(X)
+'''
+class Cook(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args = (obj)
+        self.pre_default = [Uncooked(obj)]
+        self.post_add_default = [Cooked(obj)]
+
+        Action.__init__(self, 'Cook', pre, post_add)
+
+'''
 Get(X)
 Pre: None
 Post: Fresh(X)
@@ -141,11 +214,15 @@ Post: Merged(X-Y), !SomeState(X), !SomeState(Y)
 '''
 class Merge(Action):
     def __init__(self, arg1, arg2, pre=None, post_add=None):
+        from utils.core import BurgerMeat, FriedChicken, Fish
         self.args = (arg1, arg2)
         #self.args = tuple(sorted([arg1, arg2]))
         # sorted because it doesn't matter order of merging
 
-        self.pre_default = [Chopped(arg1), Merged(arg2)]
+        if (isinstance(arg1, BurgerMeat)) or (isinstance(arg1, FriedChicken)) or (isinstance(arg1, Fish)):
+            self.pre_default = [Cooked(arg1), Merged(arg2)]
+        else:
+            self.pre_default = [Chopped(arg1), Merged(arg2)]
         self.post_add_default = [Merged('-'.join(sorted(arg1.split('-') + arg2.split('-'))))]
 
         Action.__init__(self, 'Merge', pre, post_add)

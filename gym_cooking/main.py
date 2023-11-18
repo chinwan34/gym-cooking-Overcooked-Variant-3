@@ -80,7 +80,6 @@ def initialize_agents(arglist):
                 listofroles2 = [ChoppingWaiter, CookingWaiter]
 
                 if (arglist.num_agents == 2) and (twoAgentsDone == False):
-                    print("Im in!")
                     loc = line.split(' ')
                     real_agent = RealAgent(
                             arglist=arglist,
@@ -90,7 +89,6 @@ def initialize_agents(arglist):
                             role=listofroles2[i2])
                     real_agents.append(real_agent)
                     i2+=1
-                    print(len(real_agents))
                     if len(real_agents) >= arglist.num_agents:
                         twoAgentsDone = True
 

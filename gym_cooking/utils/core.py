@@ -46,10 +46,17 @@ class Rep:
     COUNTER = '-'
     CUTBOARD = '/'
     DELIVERY = '*'
+    FRYER = '%'
+    COOKINGPAN = '!'
     TOMATO = 't'
     LETTUCE = 'l'
     ONION = 'o'
     PLATE = 'p'
+    BREAD = 'b'
+    BURGERMEAT = 'm'
+    FISH = 'f'
+    FRIEDCHICKEN = 'F'
+
 
 class GridSquare:
     def __init__(self, name, location):
@@ -81,6 +88,26 @@ class GridSquare:
         temp = self.holding
         self.holding = None
         return temp
+
+class Fryer(GridSquare):
+    def __init__(self, location):
+        GridSquare.__init__(self, "Fryer", location)
+        self.rep = Rep.FRYER
+        self.collidable = True
+    def __eq__(self, other):
+        return GridSquare.__eq__(self, other)
+    def __hash__(self):
+        return GridSquare.__hash__(self)
+
+class CookingPan(GridSquare):
+    def __init__(self, location):
+        GridSquare.__init__(self, "CookingPan", location)
+        self.rep = Rep.COOKINGPAN
+        self.collidable = True
+    def __eq__(self, other):
+        return GridSquare.__eq__(self, other)
+    def __hash__(self):
+        return GridSquare.__hash__(self)
 
 class Floor(GridSquare):
     def __init__(self, location):
@@ -259,10 +286,19 @@ def mergeable(obj1, obj2):
 class FoodState:
     FRESH = globals()['recipe'].__dict__['Fresh']
     CHOPPED = globals()['recipe'].__dict__['Chopped']
+    UNCOOKED = globals()['recipe'].__dict__['Uncooked']
+    UNFRIED = globals()['recipe'].__dict__['Unfried']
+    UNBAKED = globals()['recipe'].__dict__['Unbaked']
+    COOKED = globals()['recipe'].__dict__['Cooked']
+    MERGED = globals()['recipe'].__dict__['Merged']
 
 class FoodSequence:
     FRESH = [FoodState.FRESH]
     FRESH_CHOPPED = [FoodState.FRESH, FoodState.CHOPPED]
+    UNCOOKED_COOKED = [FoodState.UNCOOKED, FoodState.COOKED]
+    UNFRIED_COOKED = [FoodState.UNFRIED, FoodState.COOKED]
+    UNBAKED_COOKED = [FoodState.UNBAKED, FoodState.MERGED, FoodState.COOKED]
+    UNCHOPPED_UNBAKED_COOKED = [FoodState.FRESH, FoodState.CHOPPED, FoodState.UNBAKED, FoodState.MERGED, FoodState.COOKED]
 
 class Food:
     def __init__(self):
@@ -297,6 +333,9 @@ class Food:
 
     def needs_chopped(self):
         return self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.CHOPPED
+    
+    def needs_cooked(self):
+        return self.state_seq[len(self.state_seq)-1] == FoodState.COOKED
 
     def done(self):
         return (self.state_index % len(self.state_seq)) == len(self.state_seq) - 1
@@ -309,6 +348,112 @@ class Food:
 
     def _set_color(self):
         pass
+
+class BurgerMeat(Food):
+    def __init__(self, state_index=0):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.UNCOOKED_COOKED
+        self.rep = 'm'
+        self.name = 'BurgerMeat'
+        Food.__init__(self)
+    def __hash__(self):
+        return Food.__hash__(self)
+    def __eq__(self, other):
+        return Food.__eq__(self, other)
+    def __str__(self):
+        return Food.__str__(self)
+    def needs_chopped(self):
+        return False
+
+class Bread(Food):
+    def __init__(self, state_index=0):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.FRESH
+        self.rep = 'b'
+        self.name = 'Bread'
+        Food.__init__(self)
+    def __hash__(self):
+        return Food.__hash__(self)
+    def __eq__(self, other):
+        return Food.__eq__(self, other)
+    def __str__(self):
+        return Food.__str__(self)
+    def needs_chopped(self):
+        return False
+    def needs_cooked(self):
+        return True
+
+class PizzaBase(Food):
+    def __init__(self, state_index=0):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.UNBAKED_COOKED
+        self.rep = 'p'
+        self.name = 'Pizzabase'
+        Food.__init__(self)
+    def __hash__(self):
+        return Food.__hash__(self)
+    def __eq__(self, other):
+        return Food.__eq__(self, other)
+    def __str__(self):
+        return Food.__str__(self)
+    def needs_chopped(self):
+        return False
+    def needs_cooked(self):
+        return True
+
+class Cheese(Food):
+    def __init__(self, state_index=0):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.UNCHOPPED_UNBAKED_COOKED
+        self.rep = 'c'
+        self.name = 'Cheese'
+        Food.__init__(self)
+    def __hash__(self):
+        return Food.__hash__(self)
+    def __eq__(self, other):
+        return Food.__eq__(self, other)
+    def __str__(self):
+        return Food.__str__(self)
+    def needs_chopped(self):
+        return True
+    def needs_cooked(self):
+        return True
+
+class FriedChicken(Food):
+    def __init__(self, state_index=0):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.UNFRIED_COOKED
+        self.rep = 'fc'
+        self.name = 'FriedChicken'
+        Food.__init__(self)
+    def __hash__(self):
+        return Food.__hash__(self)
+    def __eq__(self, other):
+        return Food.__eq__(self, other)
+    def __str__(self):
+        return Food.__str__(self)
+    def needs_chopped(self):
+        return False
+    def needs_cooked(self):
+        return True
+
+class Fish(Food):
+    def __init__(self, state_index=0):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.UNFRIED_COOKED
+        self.rep = 'f'
+        self.name = 'Fish'
+        Food.__init__(self)
+    def __hash__(self):
+        return Food.__hash__(self)
+    def __eq__(self, other):
+        return Food.__eq__(self, other)
+    def __str__(self):
+        return Food.__str__(self)
+    def needs_chopped(self):
+        return False
+    def needs_cooked(self):
+        return True
 
 class Tomato(Food):
     def __init__(self, state_index = 0):

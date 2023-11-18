@@ -94,6 +94,16 @@ class Game:
             pygame.draw.rect(self.screen, Color.COUNTER, fill)
             pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
             self.draw('cutboard', self.tile_size, sl)
+        
+        elif isinstance(gs, CookingPan):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('Cookingpan', self.tile_size, sl)
+        
+        elif isinstance(gs, CookingPan):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('DeepFryer', self.tile_size, sl)
 
         return
 
