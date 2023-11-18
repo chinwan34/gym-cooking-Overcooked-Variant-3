@@ -388,7 +388,7 @@ class PizzaBase(Food):
         self.state_index = state_index
         self.state_seq = FoodSequence.UNBAKED_COOKED
         self.rep = 'p'
-        self.name = 'Pizzabase'
+        self.name = 'PizzaDough'
         Food.__init__(self)
     def __hash__(self):
         return Food.__hash__(self)
