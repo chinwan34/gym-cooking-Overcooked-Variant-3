@@ -107,7 +107,7 @@ class OvercookedEnvironment(gym.Env):
                 elif phase == 1:
                     for x, rep in enumerate(line):
                         # Object, i.e. Tomato, Lettuce, Onion, or Plate.
-                        if rep in 'tlop':
+                        if rep in 'tlopkfmb':
                             counter = Counter(location=(x, y))
                             obj = Object(
                                     location=(x, y),
@@ -126,8 +126,6 @@ class OvercookedEnvironment(gym.Env):
                     y += 1
                 # Phase 2: Read in recipe list.
                 elif phase == 2:
-                    print("Appending recipes")
-                    print(globals()[line]())
                     self.recipes.append(globals()[line]())
 
                 # Phase 3: Read in agent locations (up to num_agents).

@@ -48,7 +48,7 @@ class Rep:
     DELIVERY = '*'
     FRYER = '%'
     COOKINGPAN = '!'
-    PIZZAOVEN = "?"
+    PIZZAOVEN = '?'
     TOMATO = 't'
     LETTUCE = 'l'
     ONION = 'o'
@@ -56,7 +56,7 @@ class Rep:
     BREAD = 'b'
     BURGERMEAT = 'm'
     FISH = 'f'
-    FRIEDCHICKEN = 'k'
+    CHICKEN = 'k'
 
 
 class GridSquare:
@@ -214,6 +214,9 @@ class Object:
         new.__dict__ = self.__dict__.copy()
         new.contents = [copy.copy(c) for c in self.contents]
         return new
+    
+    def returnContents(self):
+        return self.contents
 
     def get_repr(self):
         return ObjectRepr(name=self.full_name, location=self.location, is_held=self.is_held)
@@ -467,11 +470,11 @@ class Cheese(Food):
 
 class FriedChicken(Food):
     def __init__(self, state_index = 0):
-        print("FriedChicken")
+        state_index = 0
         self.state_index = state_index
         self.state_seq = FoodSequence.UNFRIED_COOKED
         self.rep = 'k'
-        self.name = 'FriedChicken'
+        self.name = 'Chicken'
         Food.__init__(self)
     def __hash__(self):
         return Food.__hash__(self)
@@ -482,6 +485,7 @@ class FriedChicken(Food):
 
 class Fish(Food):
     def __init__(self, state_index=0):
+        state_index = 0
         self.state_index = state_index
         self.state_seq = FoodSequence.UNFRIED_COOKED
         self.rep = 'f'
@@ -567,6 +571,10 @@ RepToClass = {
     Rep.LETTUCE: globals()['Lettuce'],
     Rep.ONION: globals()['Onion'],
     Rep.PLATE: globals()['Plate'],
+    Rep.CHICKEN: globals()['FriedChicken'],
+    Rep.FISH: globals()['Fish'],
+    Rep.BREAD: globals()['Bread'],
+    Rep.BURGERMEAT: globals()['BurgerMeat'],
 }
 
 

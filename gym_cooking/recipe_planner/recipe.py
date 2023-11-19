@@ -92,15 +92,15 @@ class Recipe:
                             self.actions.add(recipe.Merge(item, rem_plate_str))
 class FriedChickenRe(Recipe):
     def __init__(self):
-        Recipe.__init__(self, 'FriedChicken')
+        Recipe.__init__(self, 'FriedChickenRe')
         self.add_ingredient(FriedChicken(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
-        print(self.goal)
+       
 
 class FriedFishRe(Recipe):
     def __init__(self):
-        Recipe.__init__(self, 'FriedFish')
+        Recipe.__init__(self, 'FriedFishRe')
         self.add_ingredient(Fish(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
@@ -108,7 +108,7 @@ class FriedFishRe(Recipe):
 class FishAndChicken(Recipe):
     def __init__(self):
         Recipe.__init__(self, 'FishAndChicken')
-        self.add_ingredient(FriedFish(state_index=-1))
+        self.add_ingredient(Fish(state_index=-1))
         self.add_ingredient(FriedChicken(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
@@ -185,9 +185,7 @@ class SimpleTomato(Recipe):
         self.add_merge_actions()
 
 class SimpleLettuce(Recipe):
-    print("Outside of init")
     def __init__(self):
-        print("initiate")
         Recipe.__init__(self, 'Lettuce')
         self.add_ingredient(Lettuce(state_index=-1))
         self.add_goal()

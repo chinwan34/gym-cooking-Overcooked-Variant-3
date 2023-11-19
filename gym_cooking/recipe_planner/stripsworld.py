@@ -17,12 +17,15 @@ class STRIPSWorld:
         # set initial state
         self.initial.add_predicate(recipe.NoPredicate())
         for obj in world.get_object_list():
+            print(type(obj))
             if isinstance(obj, Object):
                 for obj_name in ['Plate', 'Tomato', 'Lettuce', 'Onion', 'Bread', 'Cheese']:
                     if obj.contains(obj_name):
+                        print("FUCKKKKKKKKKKKKKKKKKK")
                         self.initial.add_predicate(recipe.Fresh(obj_name))
-                for obj_name in ['FriedChicken', 'Fish']:
+                for obj_name in ['Chicken', 'Fish']:
                     if obj.contains(obj_name):
+                        print("Inside!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         self.initial.add_predicate(recipe.Unfried(obj_name))
                 for obj_name in ['BurgerMeat']:
                     if obj.contains(obj_name):
@@ -33,12 +36,12 @@ class STRIPSWorld:
                 
 
     def generate_graph(self, recipe, max_path_length):
-        print(recipe.actions)
         all_actions = recipe.actions   # set
         goal_state = None
 
         new_preds = set()
         graph = nx.DiGraph()
+        print(self.initial)
         graph.add_node(self.initial, obj=self.initial)
         frontier = set([self.initial])
         next_frontier = set()
@@ -47,6 +50,8 @@ class STRIPSWorld:
             for state in frontier:
                 # for each action, check whether from this state
                 for a in all_actions:
+                    # print("action", a)
+                    # print("This action is valid?", a.is_valid_in(state))
                     if a.is_valid_in(state):
                         next_state = a.get_next_from(state)
                         for p in next_state.predicates:

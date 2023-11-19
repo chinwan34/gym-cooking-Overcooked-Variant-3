@@ -145,7 +145,6 @@ if __name__ == '__main__':
     arglist = parse_arguments()
     if arglist.play:
         env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
-        print("Got into main")
         env.reset()
         game = GamePlay(env.filename, env.world, env.sim_agents)
         game.on_execute()

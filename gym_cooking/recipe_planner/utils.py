@@ -186,10 +186,17 @@ Post: Fresh(X)
 '''
 class Get(Action):
     def __init__(self, obj, pre=None, post_add=None):
+        from utils.core import BurgerMeat, FriedChicken, Fish
         self.args = (obj,)   #('Tomato')
 
         self.pre_default = [NoPredicate()]
-        self.post_add_default = [Fresh(obj), NoPredicate()]
+        if (isinstance(obj, FriedChicken)) or (isinstance(obj, Fish)):
+            
+            self.post_add_default = [Unfried(obj), NoPredicate()]
+        elif isinstance(obj, BurgerMeat):
+            self.post_add_default = [Uncooked(obj), NoPredicate()]
+        else:
+            self.post_add_default = [Fresh(obj), NoPredicate()]
 
         Action.__init__(self, 'Get', pre, post_add)
 
