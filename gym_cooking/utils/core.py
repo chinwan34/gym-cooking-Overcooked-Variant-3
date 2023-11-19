@@ -575,6 +575,8 @@ RepToClass = {
     Rep.FISH: globals()['Fish'],
     Rep.BREAD: globals()['Bread'],
     Rep.BURGERMEAT: globals()['BurgerMeat'],
+    Rep.FRYER: globals()['Fryer'],
+    Rep.COOKINGPAN: globals()['CookingPan'],
 }
 
 

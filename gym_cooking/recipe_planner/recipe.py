@@ -28,6 +28,11 @@ class Recipe:
             self.actions.add(recipe.Fry(item.name))
             self.actions.add(recipe.Merge(item.name, 'Plate',\
                 [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))
+        
+        if item.state_seq == FoodSequence.UNCOOKED_COOKED:
+            self.actions.add(recipe.Cook(item.name))
+            self.actions.add(recipe.Merge(item.name, 'Plate',\
+                [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))
 
     def add_goal(self):
         self.contents = sorted(self.contents, key = lambda x: x.name)   # list of Food objects
@@ -68,7 +73,8 @@ class Recipe:
                     if isBurger:
                         if len(rem) == 1:
                             for i,j in type_permutations:
-                                if item == i[0] and rem == j[0]:
+                                if item == i[0] and rem[0] == j[0]:
+                                    print("inside here")
                                     self.actions.add(recipe.Merge(item, rem_str,\
                                         [i[1](item), j[1](rem_str)], None))
                                     self.actions.add(recipe.Merge(rem_str, plate_str))

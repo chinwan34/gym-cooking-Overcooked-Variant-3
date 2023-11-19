@@ -17,15 +17,12 @@ class STRIPSWorld:
         # set initial state
         self.initial.add_predicate(recipe.NoPredicate())
         for obj in world.get_object_list():
-            print(type(obj))
             if isinstance(obj, Object):
                 for obj_name in ['Plate', 'Tomato', 'Lettuce', 'Onion', 'Bread', 'Cheese']:
                     if obj.contains(obj_name):
-                        print("FUCKKKKKKKKKKKKKKKKKK")
                         self.initial.add_predicate(recipe.Fresh(obj_name))
                 for obj_name in ['Chicken', 'Fish']:
                     if obj.contains(obj_name):
-                        print("Inside!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         self.initial.add_predicate(recipe.Unfried(obj_name))
                 for obj_name in ['BurgerMeat']:
                     if obj.contains(obj_name):

@@ -173,7 +173,8 @@ Post: Cooked(X)
 '''
 class Cook(Action):
     def __init__(self, obj, pre=None, post_add=None):
-        self.args = (obj)
+        
+        self.args = (obj,)
         self.pre_default = [Uncooked(obj)]
         self.post_add_default = [Cooked(obj)]
 
