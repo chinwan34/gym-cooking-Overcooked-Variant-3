@@ -48,6 +48,7 @@ class Rep:
     DELIVERY = '*'
     FRYER = '%'
     COOKINGPAN = '!'
+    PIZZAOVEN = "?"
     TOMATO = 't'
     LETTUCE = 'l'
     ONION = 'o'
@@ -55,7 +56,7 @@ class Rep:
     BREAD = 'b'
     BURGERMEAT = 'm'
     FISH = 'f'
-    FRIEDCHICKEN = 'F'
+    FRIEDCHICKEN = 'k'
 
 
 class GridSquare:
@@ -93,6 +94,16 @@ class Fryer(GridSquare):
     def __init__(self, location):
         GridSquare.__init__(self, "Fryer", location)
         self.rep = Rep.FRYER
+        self.collidable = True
+    def __eq__(self, other):
+        return GridSquare.__eq__(self, other)
+    def __hash__(self):
+        return GridSquare.__hash__(self)
+
+class PizzaOven(GridSquare):
+    def __init__(self, location):
+        GridSquare.__init__(self, "Pizzaoven", location)
+        self.rep = Rep.PIZZAOVEN
         self.collidable = True
     def __eq__(self, other):
         return GridSquare.__eq__(self, other)
@@ -232,6 +243,38 @@ class Object:
         self.contents[0].update_state()
         assert not (self.needs_chopped())
         self.update_names()
+    
+    def cook(self):
+        assert len(self.contents) == 1
+        assert self.needs_cooked()
+        self.contents[0].update_state()
+        assert not (self.needs_cooked())
+        self.update_names()
+
+    def mergeBake(self, obj):
+        assert self.needs_merge_baked()
+        if obj.needs_baked():
+            self.merge(obj)
+            self.contents[0].update_state()
+            self.contents[1].update_state()
+        self.update_names()
+    
+    def bake(self):
+        # There may be issue here later
+        assert self.contents[0].needs_baked()
+        assert self.contents[1].needs_baked()
+        self.contents[0].update_state()
+        self.contents[1].update_state()
+        assert not (self.contents[0].needs_baked())
+        assert not (self.contents[1].needs_baked())
+        self.update_names()
+    
+    def fry(self):
+        assert len(self.contents) == 1
+        assert self.needs_fried()
+        self.contents[0].update_state()
+        assert not (self.needs_fried())
+        self.update_names() 
 
     def merge(self, obj):
         if isinstance(obj, Object):
@@ -335,7 +378,18 @@ class Food:
         return self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.CHOPPED
     
     def needs_cooked(self):
-        return self.state_seq[len(self.state_seq)-1] == FoodState.COOKED
+        return self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED
+    
+    def needs_fried(self):
+        return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED) and (self.state_seq[self.state_index] == FoodState.UNFRIED)
+    
+    def needs_merge_baked(self): 
+        if (self.state_seq[(self.state_index)%len(self.state_seq)] == FoodState.UNBAKED) and(self.state_seq[(self.state_index+2)%len(self.state_seq)] == FoodState.COOKED):
+            return True  
+        return False
+
+    def needs_baked(self):
+        return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED)
 
     def done(self):
         return (self.state_index % len(self.state_seq)) == len(self.state_seq) - 1
@@ -380,8 +434,6 @@ class Bread(Food):
         return Food.__str__(self)
     def needs_chopped(self):
         return False
-    def needs_cooked(self):
-        return True
 
 class PizzaBase(Food):
     def __init__(self, state_index=0):
@@ -398,8 +450,6 @@ class PizzaBase(Food):
         return Food.__str__(self)
     def needs_chopped(self):
         return False
-    def needs_cooked(self):
-        return True
 
 class Cheese(Food):
     def __init__(self, state_index=0):
@@ -414,16 +464,13 @@ class Cheese(Food):
         return Food.__eq__(self, other)
     def __str__(self):
         return Food.__str__(self)
-    def needs_chopped(self):
-        return True
-    def needs_cooked(self):
-        return True
 
 class FriedChicken(Food):
-    def __init__(self, state_index=0):
+    def __init__(self, state_index = 0):
+        print("FriedChicken")
         self.state_index = state_index
         self.state_seq = FoodSequence.UNFRIED_COOKED
-        self.rep = 'fc'
+        self.rep = 'k'
         self.name = 'FriedChicken'
         Food.__init__(self)
     def __hash__(self):
@@ -432,10 +479,6 @@ class FriedChicken(Food):
         return Food.__eq__(self, other)
     def __str__(self):
         return Food.__str__(self)
-    def needs_chopped(self):
-        return False
-    def needs_cooked(self):
-        return True
 
 class Fish(Food):
     def __init__(self, state_index=0):
@@ -452,8 +495,6 @@ class Fish(Food):
         return Food.__str__(self)
     def needs_chopped(self):
         return False
-    def needs_cooked(self):
-        return True
 
 class Tomato(Food):
     def __init__(self, state_index = 0):

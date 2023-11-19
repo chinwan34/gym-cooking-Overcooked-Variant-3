@@ -23,6 +23,11 @@ class Recipe:
             self.actions.add(recipe.Chop(item.name))
             self.actions.add(recipe.Merge(item.name, 'Plate',\
                 [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))
+        
+        if item.state_seq == FoodSequence.UNFRIED_COOKED:
+            self.actions.add(recipe.Fry(item.name))
+            self.actions.add(recipe.Merge(item.name, 'Plate',\
+                [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))
 
     def add_goal(self):
         self.contents = sorted(self.contents, key = lambda x: x.name)   # list of Food objects
@@ -85,26 +90,26 @@ class Recipe:
                             self.actions.add(recipe.Merge(plate_str, rem_str,\
                                 [recipe.Merged(plate_str), recipe.Merged(rem_str)], None))
                             self.actions.add(recipe.Merge(item, rem_plate_str))
-
-class FriedChicken(Recipe):
+class FriedChickenRe(Recipe):
     def __init__(self):
         Recipe.__init__(self, 'FriedChicken')
         self.add_ingredient(FriedChicken(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        print(self.goal)
 
-class FriedFish(Recipe):
+class FriedFishRe(Recipe):
     def __init__(self):
         Recipe.__init__(self, 'FriedFish')
-        self.add_ingredient(FriedFish(state_index=-1))
+        self.add_ingredient(Fish(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
     
 class FishAndChicken(Recipe):
     def __init__(self):
-        Recipe.__init__(self, "FishAndChicken")
-        self.add_ingredient(FriedChicken(state_index=-1))
+        Recipe.__init__(self, 'FishAndChicken')
         self.add_ingredient(FriedFish(state_index=-1))
+        self.add_ingredient(FriedChicken(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
     
@@ -180,7 +185,9 @@ class SimpleTomato(Recipe):
         self.add_merge_actions()
 
 class SimpleLettuce(Recipe):
+    print("Outside of init")
     def __init__(self):
+        print("initiate")
         Recipe.__init__(self, 'Lettuce')
         self.add_ingredient(Lettuce(state_index=-1))
         self.add_goal()

@@ -51,6 +51,10 @@ def interact(agent, world):
             if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play:
                 # normally chop, but if in playable game mode then put down first
                 obj.chop()
+            elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play:
+                obj.fry()
+            elif isinstance(gs, CookingPan) and obj.needs_cooked() and not world.arglist.play:
+                obj.cook()
             else:
                 gs.acquire(obj) # obj is put onto gridsquare
                 agent.release()
@@ -65,6 +69,10 @@ def interact(agent, world):
             # if in playable game mode, then chop raw items on cutting board
             if isinstance(gs, Cutboard) and obj.needs_chopped() and world.arglist.play:
                 obj.chop()
+            elif isinstance(gs, Fryer) and obj.needs_fried() and world.arglist.play:
+                obj.fry()
+            elif isinstance(gs, CookingPan) and obj.needs_cooked() and world.arglist.play:
+                obj.cook()
             else:
                 gs.release()
                 agent.acquire(obj)

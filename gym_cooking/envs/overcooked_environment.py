@@ -126,6 +126,8 @@ class OvercookedEnvironment(gym.Env):
                     y += 1
                 # Phase 2: Read in recipe list.
                 elif phase == 2:
+                    print("Appending recipes")
+                    print(globals()[line]())
                     self.recipes.append(globals()[line]())
 
                 # Phase 3: Read in agent locations (up to num_agents).
@@ -178,10 +180,13 @@ class OvercookedEnvironment(gym.Env):
         self.termination_info = ""
         self.successful = False
 
+        print("Before load level")
+
         # Load world & distances.
         self.load_level(
                 level=self.arglist.level,
                 num_agents=self.arglist.num_agents)
+        print("On env.reset location")
         self.all_subtasks = self.run_recipes()
         self.world.make_loc_to_gridsquare()
         self.world.make_reachability_graph()

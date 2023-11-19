@@ -11,17 +11,29 @@ import copy
 class STRIPSWorld:
     def __init__(self, world, recipes):
         self.initial = recipe.STRIPSState()
+        print("STRIPSWrold", recipes)
         self.recipes = recipes
 
         # set initial state
         self.initial.add_predicate(recipe.NoPredicate())
         for obj in world.get_object_list():
             if isinstance(obj, Object):
-                for obj_name in ['Plate', 'Tomato', 'Lettuce', 'Onion']:
+                for obj_name in ['Plate', 'Tomato', 'Lettuce', 'Onion', 'Bread', 'Cheese']:
                     if obj.contains(obj_name):
                         self.initial.add_predicate(recipe.Fresh(obj_name))
+                for obj_name in ['FriedChicken', 'Fish']:
+                    if obj.contains(obj_name):
+                        self.initial.add_predicate(recipe.Unfried(obj_name))
+                for obj_name in ['BurgerMeat']:
+                    if obj.contains(obj_name):
+                        self.initial.add_predicate(recipe.Uncooked(obj_name))
+                for obj_name in ['PizzaDough']:
+                    if obj.contains(obj_name):
+                        self.initial.add_predicate(recipe.Unbaked(obj_name))
+                
 
     def generate_graph(self, recipe, max_path_length):
+        print(recipe.actions)
         all_actions = recipe.actions   # set
         goal_state = None
 

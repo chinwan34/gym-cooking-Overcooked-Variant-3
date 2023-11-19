@@ -114,7 +114,6 @@ def main_loop(arglist):
     obs = env.reset()
     # game = GameVisualize(env)
     real_agents = initialize_agents(arglist=arglist)
-    print("Im here")
 
     # Info bag for saving pkl files
     bag = Bag(arglist=arglist, filename=env.filename)
@@ -146,6 +145,7 @@ if __name__ == '__main__':
     arglist = parse_arguments()
     if arglist.play:
         env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
+        print("Got into main")
         env.reset()
         game = GamePlay(env.filename, env.world, env.sim_agents)
         game.on_execute()
