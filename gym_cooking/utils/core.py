@@ -233,6 +233,14 @@ class Object:
     def needs_chopped(self):
         if len(self.contents) > 1: return False
         return self.contents[0].needs_chopped()
+    
+    def needs_cooked(self):
+        if len(self.contents) > 1: return False
+        return self.contents[0].needs_cooked()
+
+    def needs_fried(self):
+        if len(self.contents) > 1:return False
+        return self.contents[0].needs_fried()
 
     def is_chopped(self):
         for c in self.contents:
