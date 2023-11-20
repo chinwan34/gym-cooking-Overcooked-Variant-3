@@ -104,6 +104,11 @@ class Game:
             pygame.draw.rect(self.screen, Color.COUNTER, fill)
             pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
             self.draw('Fryer', self.tile_size, sl)
+        
+        elif isinstance(gs, PizzaOven):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('PizzaOven', self.tile_size, sl)
 
         return
 

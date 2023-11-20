@@ -57,6 +57,8 @@ class Rep:
     BURGERMEAT = 'm'
     FISH = 'f'
     CHICKEN = 'k'
+    PIZZADOUGH = 'P'
+    CHEESE = 'c'
 
 
 class GridSquare:
@@ -242,6 +244,10 @@ class Object:
         if len(self.contents) > 1:return False
         return self.contents[0].needs_fried()
 
+    def needs_baked(self):
+        if len(self.contents) > 1: return False
+        return self.contents[0].needs_baked()
+
     def is_chopped(self):
         for c in self.contents:
             if isinstance(c, Plate) or c.get_state() != 'Chopped':
@@ -261,23 +267,12 @@ class Object:
         self.contents[0].update_state()
         assert not (self.needs_cooked())
         self.update_names()
-
-    def mergeBake(self, obj):
-        assert self.needs_merge_baked()
-        if obj.needs_baked():
-            self.merge(obj)
-            self.contents[0].update_state()
-            self.contents[1].update_state()
-        self.update_names()
     
     def bake(self):
         # There may be issue here later
         assert self.contents[0].needs_baked()
-        assert self.contents[1].needs_baked()
         self.contents[0].update_state()
-        self.contents[1].update_state()
         assert not (self.contents[0].needs_baked())
-        assert not (self.contents[1].needs_baked())
         self.update_names()
     
     def fry(self):
@@ -351,8 +346,7 @@ class FoodSequence:
     FRESH_CHOPPED = [FoodState.FRESH, FoodState.CHOPPED]
     UNCOOKED_COOKED = [FoodState.UNCOOKED, FoodState.COOKED]
     UNFRIED_COOKED = [FoodState.UNFRIED, FoodState.COOKED]
-    UNBAKED_COOKED = [FoodState.UNBAKED, FoodState.MERGED, FoodState.COOKED]
-    UNCHOPPED_UNBAKED_COOKED = [FoodState.FRESH, FoodState.CHOPPED, FoodState.UNBAKED, FoodState.MERGED, FoodState.COOKED]
+    UNBAKED_COOKED = [FoodState.UNBAKED, FoodState.COOKED]
 
 class Food:
     def __init__(self):
@@ -393,11 +387,6 @@ class Food:
     
     def needs_fried(self):
         return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED) and (self.state_seq[self.state_index] == FoodState.UNFRIED)
-    
-    def needs_merge_baked(self): 
-        if (self.state_seq[(self.state_index)%len(self.state_seq)] == FoodState.UNBAKED) and(self.state_seq[(self.state_index+2)%len(self.state_seq)] == FoodState.COOKED):
-            return True  
-        return False
 
     def needs_baked(self):
         return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED)
@@ -446,7 +435,7 @@ class Bread(Food):
     def needs_chopped(self):
         return False
 
-class PizzaBase(Food):
+class PizzaDough(Food):
     def __init__(self, state_index=0):
         self.state_index = state_index
         self.state_seq = FoodSequence.UNBAKED_COOKED
@@ -465,7 +454,7 @@ class PizzaBase(Food):
 class Cheese(Food):
     def __init__(self, state_index=0):
         self.state_index = state_index
-        self.state_seq = FoodSequence.UNCHOPPED_UNBAKED_COOKED
+        self.state_seq = FoodSequence.FRESH_CHOPPED
         self.rep = 'c'
         self.name = 'Cheese'
         Food.__init__(self)
@@ -585,6 +574,9 @@ RepToClass = {
     Rep.BURGERMEAT: globals()['BurgerMeat'],
     Rep.FRYER: globals()['Fryer'],
     Rep.COOKINGPAN: globals()['CookingPan'],
+    Rep.CHEESE: globals()['Cheese'],
+    Rep.PIZZADOUGH: globals()['PizzaDough'],
+    Rep.PIZZAOVEN: globals()['PizzaOven'],
 }
 
 

@@ -33,6 +33,11 @@ class Recipe:
             self.actions.add(recipe.Cook(item.name))
             self.actions.add(recipe.Merge(item.name, 'Plate',\
                 [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))
+        
+        if item.state_seq == FoodSequence.UNBAKED_COOKED:
+            self.actions.add(recipe.Bake(item.name))
+            self.actions.add(recipe.Merge(item.name, 'Plate',\
+                [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))    
 
     def add_goal(self):
         self.contents = sorted(self.contents, key = lambda x: x.name)   # list of Food objects
@@ -101,7 +106,47 @@ class FriedChickenRe(Recipe):
         self.add_ingredient(FriedChicken(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
-       
+
+class SimplePizza(Recipe):
+    def __init__(self):
+        Recipe.__init__(self, 'SimplePizza')
+        self.add_ingredient(PizzaDough(state_index=-1))
+        self.add_ingredient(Cheese(state_index=-1))
+        self.add_goal()
+        self.add_merge_actions()
+    
+    def add_merge_actions(self):
+         for i in range(2, len(self.contents)+1):
+            # for any combo of i ingredients to be merged
+            for combo in combinations(self.contents_names, i):
+                # can merge all with plate
+                self.actions.add(recipe.Merge('-'.join(sorted(combo)), 'Plate',\
+                    [recipe.Merged('-'.join(sorted(combo))), recipe.Fresh('Plate')], None))
+
+                # for any one item to be added to the i-1 rest
+                for item in combo:
+                    rem = list(combo).copy()
+                    rem.remove(item)
+                    rem_str = '-'.join(sorted(rem))
+                    plate_str = '-'.join(sorted([item, 'Plate']))
+                    rem_plate_str = '-'.join(sorted(rem + ['Plate']))
+
+                    # can merge item with remaining
+                    if len(rem) == 1:
+                        if item == "PizzaDough" and rem[0] == "Cheese":
+                            self.actions.add(recipe.Merge(item, rem_str,\
+                                [recipe.Cooked(item), recipe.Chopped(rem_str)], None))
+                        elif item == "Cheese" and rem[0] == "PizzaDough":
+                            self.actions.add(recipe.Merge(item, rem_str,\
+                                [recipe.Chopped(item), recipe.Cooked(rem_str)], None))
+                        self.actions.add(recipe.Merge(rem_str, plate_str))
+                        self.actions.add(recipe.Merge(item, rem_plate_str))
+                    else:
+                        self.actions.add(recipe.Merge(item, rem_str))
+                        self.actions.add(recipe.Merge(plate_str, rem_str,\
+                            [recipe.Merged(plate_str), recipe.Merged(rem_str)], None))
+                        self.actions.add(recipe.Merge(item, rem_plate_str))
+
 
 class FriedFishRe(Recipe):
     def __init__(self):
@@ -137,7 +182,7 @@ class FishAndChicken(Recipe):
                     # can merge item with remaining
                     if len(rem) == 1:
                         self.actions.add(recipe.Merge(item, rem_str,\
-                            [recipe.Cooked(item), recipe.Cooked(rem_str)], None))
+                            [recipe.Unbaked(item), recipe.Unbaked(rem_str)], None))
                         self.actions.add(recipe.Merge(rem_str, plate_str))
                         self.actions.add(recipe.Merge(item, rem_plate_str))
                     else:

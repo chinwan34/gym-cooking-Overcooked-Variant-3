@@ -55,6 +55,8 @@ def interact(agent, world):
                 obj.fry()
             elif isinstance(gs, CookingPan) and obj.needs_cooked() and not world.arglist.play:
                 obj.cook()
+            elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play:
+                obj.bake()
             else:
                 gs.acquire(obj) # obj is put onto gridsquare
                 agent.release()
@@ -73,6 +75,8 @@ def interact(agent, world):
                 obj.fry()
             elif isinstance(gs, CookingPan) and obj.needs_cooked() and world.arglist.play:
                 obj.cook()
+            elif isinstance(gs, PizzaOven) and obj.needs_baked() and world.arglist.play:
+                obj.bake()
             else:
                 gs.release()
                 agent.acquire(obj)

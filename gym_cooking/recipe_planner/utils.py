@@ -159,9 +159,8 @@ Post: Cooked(X)
 '''
 class Bake(Action):
     def __init__(self, obj, pre=None, post_add=None):
-        self.args= (obj)
-
-        self.pre_default = [Unbaked(obj), Merged(obj)]
+        self.args= (obj,)
+        self.pre_default = [Unbaked(obj)]
         self.post_add_default = [Cooked(obj)]
 
         Action.__init__(self, 'Bake', pre, post_add)
@@ -173,7 +172,7 @@ Post: Cooked(X)
 '''
 class Cook(Action):
     def __init__(self, obj, pre=None, post_add=None):
-        
+
         self.args = (obj,)
         self.pre_default = [Uncooked(obj)]
         self.post_add_default = [Cooked(obj)]
@@ -192,7 +191,6 @@ class Get(Action):
 
         self.pre_default = [NoPredicate()]
         if (isinstance(obj, FriedChicken)) or (isinstance(obj, Fish)):
-            
             self.post_add_default = [Unfried(obj), NoPredicate()]
         elif isinstance(obj, BurgerMeat):
             self.post_add_default = [Uncooked(obj), NoPredicate()]
@@ -208,6 +206,7 @@ Post: Chopped(X), !Fresh(X)
 '''
 class Chop(Action):
     def __init__(self, obj, pre=None, post_add=None):
+        from utils.core import Cheese
         self.args = (obj,)
 
         self.pre_default = [Fresh(obj)]
@@ -222,15 +221,18 @@ Post: Merged(X-Y), !SomeState(X), !SomeState(Y)
 '''
 class Merge(Action):
     def __init__(self, arg1, arg2, pre=None, post_add=None):
-        from utils.core import BurgerMeat, FriedChicken, Fish
+        from utils.core import BurgerMeat, FriedChicken, Fish, Cheese, PizzaDough
         self.args = (arg1, arg2)
         #self.args = tuple(sorted([arg1, arg2]))
         # sorted because it doesn't matter order of merging
 
         if (isinstance(arg1, BurgerMeat)) or (isinstance(arg1, FriedChicken)) or (isinstance(arg1, Fish)):
             self.pre_default = [Cooked(arg1), Merged(arg2)]
-        else:
+        elif (isinstance(arg1, PizzaDough)):
+            self.pre_default = [Unbaked(arg1), Merged(arg2)]
+        else: 
             self.pre_default = [Chopped(arg1), Merged(arg2)]
+        
         self.post_add_default = [Merged('-'.join(sorted(arg1.split('-') + arg2.split('-'))))]
 
         Action.__init__(self, 'Merge', pre, post_add)

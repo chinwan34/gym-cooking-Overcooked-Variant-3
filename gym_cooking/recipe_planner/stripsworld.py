@@ -38,17 +38,13 @@ class STRIPSWorld:
 
         new_preds = set()
         graph = nx.DiGraph()
-        print(self.initial)
         graph.add_node(self.initial, obj=self.initial)
         frontier = set([self.initial])
         next_frontier = set()
         for i in range(max_path_length):
-            # print('CHECKING FRONTIER #:', i)
             for state in frontier:
                 # for each action, check whether from this state
                 for a in all_actions:
-                    # print("action", a)
-                    # print("This action is valid?", a.is_valid_in(state))
                     if a.is_valid_in(state):
                         next_state = a.get_next_from(state)
                         for p in next_state.predicates:
@@ -56,7 +52,7 @@ class STRIPSWorld:
                         graph.add_node(next_state, obj=next_state)
                         graph.add_edge(state, next_state, obj=a)
 
-                        # as soon as goal is found, break and return                       
+                        # as soon as goal is found, break and return                     
                         if self.check_goal(recipe, next_state) and goal_state is None:
                             goal_state = next_state
                             return graph, goal_state
