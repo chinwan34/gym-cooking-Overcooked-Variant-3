@@ -615,6 +615,12 @@ class Plate:
         return Plate()
     def needs_chopped(self):
         return False
+    def needs_fried(self):
+        return False
+    def needs_cooked(self):
+        return False
+    def needs_baked(self):
+        return False
 
 
 # -----------------------------------------------------------
