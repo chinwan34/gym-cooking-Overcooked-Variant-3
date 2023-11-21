@@ -108,7 +108,6 @@ class FriedChickenRe(Recipe):
     def __init__(self):
         Recipe.__init__(self, 'FriedChickenRe')
         self.add_ingredient(FriedChicken(state_index=-1))
-        # self.add_uncleaned_plates_issue()
         self.add_goal()
         self.add_merge_actions()
 

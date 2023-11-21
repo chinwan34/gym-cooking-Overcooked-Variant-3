@@ -93,6 +93,36 @@ def interact(agent, world):
                 obj.bake()
             elif isinstance(gs, Sink) and obj.needs_cleaned() and world.arglist.play:
                 obj.clean()
+            elif isinstance(gs, TrashCan) and world.arglist.play:
+                alphabetClassPair = [(Fish, 'f'), (FriedChicken, 'k'), (BurgerMeat, 'm'),
+                         (PizzaDough, 'P'), (Cheese, 'c'), (Bread, 'b'), (Onion, 'o'),
+                         (Lettuce, 'l'), (Tomato, 't'), (Plate, 'p')]
+                
+                emptyNewContentsWithString = []
+                for i in range(len(obj.contents)):
+                    for j in range(len(alphabetClassPair)):
+                        if type(obj.contents[i]) == alphabetClassPair[j][0]:
+                            emptyNewContentsWithString.append(alphabetClassPair[j][1])
+
+                for i in range(0, len(emptyNewContentsWithString)):
+                    for j in range(0, len(Game.food_locations)):
+                        if Game.food_locations[j][0] == emptyNewContentsWithString[i]:
+                            print("here")
+                            (currentX,currentY) = Game.food_locations[j][1]
+                            gsPlate = world.get_gridsquare_at((currentX, currentY))
+                            if gsPlate.holding is None:
+                                if Game.food_locations[j][0] == 'p':
+                                    gsPlate.acquire(Object(location=Game.food_locations[j][1], contents=RepToClass[Game.food_locations[j][0]](state_index=1)))
+                                else:
+                                    gsPlate.acquire(Object(location=Game.food_locations[j][1], contents=RepToClass[Game.food_locations[j][0]](state_index=0)))
+                                world.insert(gsPlate.holding)
+                                break
+                            else:
+                                continue
+                
+                world.remove(obj)
+
+
             else:
                 gs.release()
                 agent.acquire(obj)

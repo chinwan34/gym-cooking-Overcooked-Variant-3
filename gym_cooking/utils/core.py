@@ -60,6 +60,7 @@ class Rep:
     PIZZADOUGH = 'P'
     CHEESE = 'c'
     SINK = '1'
+    TRASHCAN = '$'
 
 
 class GridSquare:
@@ -92,6 +93,16 @@ class GridSquare:
         temp = self.holding
         self.holding = None
         return temp
+    
+class TrashCan(GridSquare):
+    def __init__(self, location):
+        GridSquare.__init__(self, "TrashCan", location)
+        self.rep = Rep.TRASHCAN
+        self.colldiable = True
+    def __eq__(self, other):
+        return GridSquare.__eq__(self, other)
+    def __hash__(self):
+        return GridSquare.__hash__(self)
 
 class Sink(GridSquare):
     def __init__(self, location):
@@ -628,6 +639,7 @@ RepToClass = {
     Rep.PIZZADOUGH: globals()['PizzaDough'],
     Rep.PIZZAOVEN: globals()['PizzaOven'],
     Rep.SINK: globals()['Sink'],
+    Rep.TRASHCAN: globals()['TrashCan'],
 }
 
 
