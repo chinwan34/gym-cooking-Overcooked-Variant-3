@@ -33,14 +33,11 @@ def interact(agent, world):
                 time.sleep(2)
 
                 for i in range(0, len(Game.plate_location)):
-                    print("hello")
                     (currentX,currentY) = Game.plate_location[i]
                     gsPlate = world.get_gridsquare_at((currentX, currentY))
                     if gsPlate.holding is None:
-                        print("Hey I got here")
                         gsPlate.acquire(Object(location=Game.plate_location[i], contents=RepToClass["p"](state_index=0)))
                         world.insert(gsPlate.holding)
-                        print(gsPlate.holding)
                         break
 
         # if occupied gridsquare in front --> try merging
@@ -72,7 +69,7 @@ def interact(agent, world):
                 obj.cook()
             elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play:
                 obj.bake()
-            elif isinstance(gs, Sink) and obj.needs_baked() and not world.arglist.play:
+            elif isinstance(gs, Sink) and obj.needs_cleaned() and not world.arglist.play:
                 obj.clean()
             else:
                 gs.acquire(obj) # obj is put onto gridsquare

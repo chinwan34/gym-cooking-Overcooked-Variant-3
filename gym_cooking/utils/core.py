@@ -296,6 +296,13 @@ class Object:
         self.contents[0].update_state()
         assert not (self.needs_fried())
         self.update_names() 
+    
+    def clean(self):
+        assert len(self.contents) == 1
+        assert self.needs_cleaned()
+        self.contents[0].update_state()
+        self.update_names()
+
 
     def merge(self, obj):
         if isinstance(obj, Object):
@@ -329,6 +336,9 @@ def mergeable(obj1, obj2):
     # query whether two objects are mergeable
     contents = obj1.contents + obj2.contents
     # check that there is at most one plate
+    for c in contents:
+        if not c.done():
+            return False
     try:
         contents.remove(Plate())
     except:
@@ -566,6 +576,21 @@ class Plate:
         self.name = 'Plate'
         self.full_name = 'Plate'
         self.color = 'white'
+    
+    def done(self):
+        return (self.state_index % len(self.state_seq)) == len(self.state_seq) - 1
+    
+    def update_names(self):
+        self.full_name = "Plate"
+    
+    def update_state(self):
+        self.state_index += 1
+        assert 0 <= self.state_index and self.state_index < len(self.state_seq), "State index is out of bounds for its state sequence"
+        self.state = self.state_seq[self.state_index]
+        self.update_names
+
+    def needs_cleaned(self):
+        return self.state_seq[(self.state_index)%len(self.state_seq)] == FoodState.UNCLEANED
     def __hash__(self):
         return hash((self.name))
     def __str__(self):

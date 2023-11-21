@@ -161,10 +161,15 @@ class Game:
 
     def draw_object(self, obj):
         if obj is None: return
+
+        for i in obj.contents:
+            if (isinstance(i, Plate)) and (i.state_index == 0):
+                self.draw('DirtyPlate', self.tile_size, self.scaled_location(obj.location))
+                return 
+        
         if any([isinstance(c, Plate) for c in obj.contents]):
             self.draw('Plate', self.tile_size, self.scaled_location(obj.location))
             if len(obj.contents) > 1:
-                print(obj.full_name)
                 plate = obj.unmerge('Plate')
                 self.draw(obj.full_name, self.container_size, self.container_location(obj.location))
                 obj.merge(plate)

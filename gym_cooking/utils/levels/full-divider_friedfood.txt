@@ -1,13 +1,14 @@
 -%-----p-
 -   -   -
 %   -   -
--   -   p
+-   -   -
 k   -   -
 -   -   *
 -   -   -
-------f--
+-1----f--
 
-FishAndChicken
+FriedFishRe
+FriedChickenRe
 
 1 2
 7 3

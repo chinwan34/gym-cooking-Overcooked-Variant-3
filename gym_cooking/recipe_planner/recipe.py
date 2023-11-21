@@ -182,7 +182,7 @@ class FishAndChicken(Recipe):
                     # can merge item with remaining
                     if len(rem) == 1:
                         self.actions.add(recipe.Merge(item, rem_str,\
-                            [recipe.Unbaked(item), recipe.Unbaked(rem_str)], None))
+                            [recipe.Cooked(item), recipe.Cooked(rem_str)], None))
                         self.actions.add(recipe.Merge(rem_str, plate_str))
                         self.actions.add(recipe.Merge(item, rem_plate_str))
                     else:
