@@ -136,6 +136,11 @@ class Game:
     def draw_agent_object(self, obj):
         # Holding shows up in bottom right corner.
         if obj is None: return
+        for i in obj.contents:
+            if (isinstance(i, Plate)) and (i.state_index == 0):
+                i.update_dirty_name()
+                self.draw('DirtyPlate', self.tile_size, self.scaled_location(obj.location))
+                return
         if any([isinstance(c, Plate) for c in obj.contents]): 
             self.draw('Plate', self.holding_size, self.holding_location(obj.location))
             if len(obj.contents) > 1:
@@ -164,6 +169,7 @@ class Game:
 
         for i in obj.contents:
             if (isinstance(i, Plate)) and (i.state_index == 0):
+                i.update_dirty_name()
                 self.draw('DirtyPlate', self.tile_size, self.scaled_location(obj.location))
                 return 
         

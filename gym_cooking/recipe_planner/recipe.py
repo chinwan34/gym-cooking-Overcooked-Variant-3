@@ -37,7 +37,11 @@ class Recipe:
         if item.state_seq == FoodSequence.UNBAKED_COOKED:
             self.actions.add(recipe.Bake(item.name))
             self.actions.add(recipe.Merge(item.name, 'Plate',\
-                [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))    
+                [item.state_seq[-1](item.name), recipe.Fresh('Plate')], None))  
+    
+    # def add_uncleaned_plates_issue(self):
+    #     self.actions.add(recipe.Clean(Plate().full_name, \
+    #             Plate().state_seq[0](Plate().full_name), Plate().state_seq[1](Plate().full_name))) 
 
     def add_goal(self):
         self.contents = sorted(self.contents, key = lambda x: x.name)   # list of Food objects
@@ -104,6 +108,7 @@ class FriedChickenRe(Recipe):
     def __init__(self):
         Recipe.__init__(self, 'FriedChickenRe')
         self.add_ingredient(FriedChicken(state_index=-1))
+        # self.add_uncleaned_plates_issue()
         self.add_goal()
         self.add_merge_actions()
 

@@ -583,6 +583,9 @@ class Plate:
     def update_names(self):
         self.full_name = "Plate"
     
+    def update_dirty_name(self):
+        self.full_name = "Dirty-Plate"
+    
     def update_state(self):
         self.state_index += 1
         assert 0 <= self.state_index and self.state_index < len(self.state_seq), "State index is out of bounds for its state sequence"
