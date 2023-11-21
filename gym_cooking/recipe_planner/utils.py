@@ -75,6 +75,10 @@ class Merged(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Merged', (obj,))
 
+class Uncleaned(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Uncleaned', (obj,))
+
 
 # ACTIONS
 # -------------------------------------------------------------
@@ -134,7 +138,7 @@ class Clean(Action):
         self.args= (obj,)
 
         self.pre_default = [Uncleaned(obj)]
-        self.post_add_default = [Cleaned(obj)]
+        self.post_add_default = [Fresh(obj)]
 
         Action.__init__(self, 'Clean', pre, post_add)
 
@@ -186,7 +190,7 @@ Post: Fresh(X)
 '''
 class Get(Action):
     def __init__(self, obj, pre=None, post_add=None):
-        from utils.core import BurgerMeat, FriedChicken, Fish
+        from utils.core import BurgerMeat, FriedChicken, Fish, Plate
         self.args = (obj,)   #('Tomato')
 
         self.pre_default = [NoPredicate()]
@@ -194,6 +198,8 @@ class Get(Action):
             self.post_add_default = [Unfried(obj), NoPredicate()]
         elif isinstance(obj, BurgerMeat):
             self.post_add_default = [Uncooked(obj), NoPredicate()]
+        elif isinstance(obj, Plate):
+            self.post_add_deafult = [NoPredicate()]
         else:
             self.post_add_default = [Fresh(obj), NoPredicate()]
 
@@ -221,7 +227,7 @@ Post: Merged(X-Y), !SomeState(X), !SomeState(Y)
 '''
 class Merge(Action):
     def __init__(self, arg1, arg2, pre=None, post_add=None):
-        from utils.core import BurgerMeat, FriedChicken, Fish, Cheese, PizzaDough
+        from utils.core import BurgerMeat, FriedChicken, Fish, Plate, PizzaDough
         self.args = (arg1, arg2)
         #self.args = tuple(sorted([arg1, arg2]))
         # sorted because it doesn't matter order of merging
@@ -230,6 +236,8 @@ class Merge(Action):
             self.pre_default = [Cooked(arg1), Merged(arg2)]
         elif (isinstance(arg1, PizzaDough)):
             self.pre_default = [Unbaked(arg1), Merged(arg2)]
+        elif (isinstance(arg1, Plate)):
+            self.pre_default = [Fresh(arg1), Merged(arg2)]
         else: 
             self.pre_default = [Chopped(arg1), Merged(arg2)]
         

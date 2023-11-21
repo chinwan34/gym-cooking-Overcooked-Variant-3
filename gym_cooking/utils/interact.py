@@ -1,7 +1,9 @@
 from utils.core import *
 import numpy as np
+import time
 
 def interact(agent, world):
+    from misc.game.game import Game
     """Carries out interaction for this agent taking this action in this world.
 
     The action that needs to be executed is stored in `agent.action`.
@@ -25,8 +27,21 @@ def interact(agent, world):
             obj = agent.holding
             if obj.is_deliverable():
                 gs.acquire(obj)
+                world.insert(obj)
                 agent.release()
                 print('\nDelivered {}!'.format(obj.full_name))
+                time.sleep(2)
+
+                for i in range(0, len(Game.plate_location)):
+                    print("hello")
+                    (currentX,currentY) = Game.plate_location[i]
+                    gsPlate = world.get_gridsquare_at((currentX, currentY))
+                    if gsPlate.holding is None:
+                        print("Hey I got here")
+                        gsPlate.acquire(Object(location=Game.plate_location[i], contents=RepToClass["p"](state_index=0)))
+                        world.insert(gsPlate.holding)
+                        print(gsPlate.holding)
+                        break
 
         # if occupied gridsquare in front --> try merging
         elif world.is_occupied(gs.location):
@@ -45,7 +60,7 @@ def interact(agent, world):
                     agent.release()
 
 
-        # if holding something, empty gridsquare in front --> chop or drop
+        # if holding something, empty gridsquare in front --> chop, cook, bake or drop
         elif not world.is_occupied(gs.location):
             obj = agent.holding
             if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play:
@@ -57,6 +72,8 @@ def interact(agent, world):
                 obj.cook()
             elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play:
                 obj.bake()
+            elif isinstance(gs, Sink) and obj.needs_baked() and not world.arglist.play:
+                obj.clean()
             else:
                 gs.acquire(obj) # obj is put onto gridsquare
                 agent.release()
@@ -77,6 +94,8 @@ def interact(agent, world):
                 obj.cook()
             elif isinstance(gs, PizzaOven) and obj.needs_baked() and world.arglist.play:
                 obj.bake()
+            elif isinstance(gs, Sink) and obj.needs_cleaned() and world.arglist.play:
+                obj.clean()
             else:
                 gs.release()
                 agent.acquire(obj)

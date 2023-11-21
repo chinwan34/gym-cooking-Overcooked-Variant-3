@@ -39,6 +39,8 @@ class OvercookedEnvironment(gym.Env):
         self.t = 0
         self.set_filename()
 
+        
+
         # For visualizing episode.
         self.rep = []
 
@@ -109,6 +111,7 @@ class OvercookedEnvironment(gym.Env):
                         # Object, i.e. Tomato, Lettuce, Onion, or Plate.
                         if rep in 'tlopkfmbcP':
                             counter = Counter(location=(x, y))
+
                             obj = Object(
                                     location=(x, y),
                                     contents=RepToClass[rep]())
@@ -498,4 +501,4 @@ class OvercookedEnvironment(gym.Env):
 
         # Save all distances under world as well.
         self.world.distances = self.distances
-
+    

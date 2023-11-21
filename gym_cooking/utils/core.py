@@ -59,6 +59,7 @@ class Rep:
     CHICKEN = 'k'
     PIZZADOUGH = 'P'
     CHEESE = 'c'
+    SINK = '1'
 
 
 class GridSquare:
@@ -91,6 +92,16 @@ class GridSquare:
         temp = self.holding
         self.holding = None
         return temp
+
+class Sink(GridSquare):
+    def __init__(self, location):
+        GridSquare.__init__(self, "Sink", location)
+        self.rep = Rep.SINK
+        self.collidable = True
+    def __eq__(self, other):
+        return GridSquare.__eq__(self, other)
+    def __hash__(self):
+        return GridSquare.__hash__(self)
 
 class Fryer(GridSquare):
     def __init__(self, location):
@@ -235,6 +246,10 @@ class Object:
     def needs_chopped(self):
         if len(self.contents) > 1: return False
         return self.contents[0].needs_chopped()
+
+    def needs_cleaned(self):
+        if len(self.contents) > 1: return False
+        return self.contents[0].needs_cleaned()
     
     def needs_cooked(self):
         if len(self.contents) > 1: return False
@@ -340,8 +355,10 @@ class FoodState:
     UNBAKED = globals()['recipe'].__dict__['Unbaked']
     COOKED = globals()['recipe'].__dict__['Cooked']
     MERGED = globals()['recipe'].__dict__['Merged']
+    UNCLEANED = globals()['recipe'].__dict__['Uncleaned']
 
 class FoodSequence:
+    UNCLEANED_FRESH = [FoodState.UNCLEANED, FoodState.FRESH]
     FRESH = [FoodState.FRESH]
     FRESH_CHOPPED = [FoodState.FRESH, FoodState.CHOPPED]
     UNCOOKED_COOKED = [FoodState.UNCOOKED, FoodState.COOKED]
@@ -378,18 +395,21 @@ class Food:
 
     def update_names(self):
         self.full_name = '{}{}'.format(self.get_state(), self.name)
+    
+    def needs_cleaned(self):
+        return self.state_seq[(self.state_index)%len(self.state_seq)] == FoodState.UNCLEANED
 
     def needs_chopped(self):
         return self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.CHOPPED
     
     def needs_cooked(self):
-        return self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED
+        return self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED and (self.state_seq[self.state_index] == FoodState.UNCOOKED)
     
     def needs_fried(self):
         return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED) and (self.state_seq[self.state_index] == FoodState.UNFRIED)
 
     def needs_baked(self):
-        return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED)
+        return (self.state_seq[(self.state_index+1)%len(self.state_seq)] == FoodState.COOKED) and (self.state_seq[self.state_index] == FoodState.UNBAKED)
 
     def done(self):
         return (self.state_index % len(self.state_seq)) == len(self.state_seq) - 1
@@ -539,7 +559,9 @@ class Onion(Food):
 # -----------------------------------------------------------
 
 class Plate:
-    def __init__(self):
+    def __init__(self, state_index = 1):
+        self.state_index = state_index
+        self.state_seq = FoodSequence.UNCLEANED_FRESH
         self.rep = "p"
         self.name = 'Plate'
         self.full_name = 'Plate'
@@ -577,6 +599,7 @@ RepToClass = {
     Rep.CHEESE: globals()['Cheese'],
     Rep.PIZZADOUGH: globals()['PizzaDough'],
     Rep.PIZZAOVEN: globals()['PizzaOven'],
+    Rep.SINK: globals()['Sink'],
 }
 
 

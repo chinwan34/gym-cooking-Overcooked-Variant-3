@@ -18,6 +18,8 @@ def get_image(path):
 
 
 class Game:
+    plate_location = []
+
     def __init__(self, world, sim_agents, play=False):
         self._running = True
         self.world = world
@@ -37,6 +39,9 @@ class Game:
         self.holding_container_size = tuple((self.container_scale * np.asarray(self.holding_size)).astype(int))
         #self.font = pygame.font.SysFont('arialttf', 10)
 
+        self.get_plate_location()
+        print(self.plate_location)
+        
 
     def on_init(self):
         pygame.init()
@@ -109,6 +114,11 @@ class Game:
             pygame.draw.rect(self.screen, Color.COUNTER, fill)
             pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
             self.draw('PizzaOven', self.tile_size, sl)
+        
+        elif isinstance(gs, Sink):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('Sink', self.tile_size, sl)
 
         return
 
@@ -135,11 +145,26 @@ class Game:
         else:
             self.draw(obj.full_name, self.holding_size, self.holding_location(obj.location))
 
+    def get_plate_location(self):
+        objs = []
+        for o_list in self.world.objects.values():
+            for o in o_list:
+                if isinstance(o, GridSquare):
+                    pass
+                elif o.is_held == False:
+                    objs.append(o)
+        
+        # Draw objects not held by agents
+        for o in objs:
+            if any([isinstance(c, Plate) for c in o.contents]):
+                Game.plate_location.append(o.location)
+
     def draw_object(self, obj):
         if obj is None: return
-        if any([isinstance(c, Plate) for c in obj.contents]): 
+        if any([isinstance(c, Plate) for c in obj.contents]):
             self.draw('Plate', self.tile_size, self.scaled_location(obj.location))
             if len(obj.contents) > 1:
+                print(obj.full_name)
                 plate = obj.unmerge('Plate')
                 self.draw(obj.full_name, self.container_size, self.container_location(obj.location))
                 obj.merge(plate)
