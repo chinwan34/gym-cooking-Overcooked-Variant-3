@@ -55,16 +55,37 @@ def fix_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
 
+def findSuitableRoles(actionsNotSatisfied, num_agents):
+    listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), ChoppingWaiter(), MergingWaiter(),
+                    CookingWaiter(), BakingWaiter(), ExceptionalChef(), FryingWaiter(), Frier()]
+
+    actionNamePair = [(Merge, "Merge"), (Get, "Get"), (Deliver, "Deliver"), (Cook, "Cook"), (Fry, "Fry"), (Chop, "Chop"),
+                        (Bake, "Bake"), (Clean, "Clean")]
+
+    combinationsBasedOnAgents = combinations(listOfRoles, num_agents)
+
+    for eachCombination in combinationsBasedOnAgents:
+        currentSet = set()
+        for i in eachCombination:
+            initialized = i
+            for action in initialized.probableActions:
+                for (classType, stringUsed) in actionNamePair:
+                    if action == classType:
+                        currentSet.add(stringUsed)
+        set.union(currentSet)
+
+        if actionsNotSatisfied.issubset(currentSet):
+            return eachCombination
+
 def initialize_agents(arglist):
     real_agents = []
 
     with open('utils/levels/{}.txt'.format(arglist.level), 'r') as f:
         phase = 1
         recipes = []
-        twoAgentsDone = False
-        i2 = 0
-        threeAgentsDone = False
-        i3 = 0
+        index = 0
+        finished = False
+        actionLeft = []
         for line in f:
             line = line.strip('\n')
             if line == '':
@@ -76,35 +97,27 @@ def initialize_agents(arglist):
 
             # phase 3: read in agent locations (up to num_agents)
             elif phase == 3:
-                listofroles = [Chopper, Cooker, Deliverer]
-                listofroles2 = [ChoppingWaiter, CookingWaiter]
+                if not actionLeft:
+                    for i in recipes:
+                        actionLeft = actionLeft + list(i.actions)
+                    actionLeft = list(dict.fromkeys(actionLeft))
+                    actionLeft = set(action.name for action in actionLeft)
 
-                if (arglist.num_agents == 2) and (twoAgentsDone == False):
+                roleList = findSuitableRoles(actionLeft, arglist.num_agents)
+                if (finished == False):
+                    print("I got here")
                     loc = line.split(' ')
                     real_agent = RealAgent(
-                            arglist=arglist,
-                            name='agent-'+str(len(real_agents)+1),
-                            id_color=COLORS[len(real_agents)],
-                            recipes=recipes,
-                            role=listofroles2[i2])
+                        arglist=arglist,
+                        # name='agent-'+str(len(real_agents)+1)+roleList[index].name,
+                        name='agent-'+str(len(real_agents)+1),
+                        id_color=COLORS[len(real_agents)],
+                        recipes=recipes,
+                        role=roleList[index]
+                    )
                     real_agents.append(real_agent)
-                    i2+=1
                     if len(real_agents) >= arglist.num_agents:
-                        twoAgentsDone = True
-
-                else:   
-                    if (threeAgentsDone == False) and (twoAgentsDone == False):
-                        loc = line.split(' ')
-                        real_agent = RealAgent(
-                                arglist=arglist,
-                                name='agent-'+str(len(real_agents)+1),
-                                id_color=COLORS[len(real_agents)],
-                                recipes=recipes,
-                                role=listofroles[i3%3])
-                        real_agents.append(real_agent)
-                        i3+=1
-                        if len(real_agents) >= arglist.num_agents:
-                            threeAgentsDone = True
+                        finished = True
     return real_agents
 
 def main_loop(arglist):

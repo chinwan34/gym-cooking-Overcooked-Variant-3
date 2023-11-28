@@ -97,12 +97,8 @@ class OvercookedEnvironment(gym.Env):
         with open('utils/levels/{}.txt'.format(level), 'r') as file:
             # Mark the phases of reading.
             phase = 1
-            twoAgentsDone = False
-            threeAgentsDone = False
             AgentsDone = False
             currentIndex=0
-            i2=0
-            i3=0
             for line in file:
                 line = line.strip('\n')
                 if line == '':
@@ -144,11 +140,11 @@ class OvercookedEnvironment(gym.Env):
                         actionsNotSatisfied = set(action.name for action in actionsNotSatisfied)
                     
                     roleList = self.findSuitableRoles(actionsNotSatisfied, num_agents)
-                    print(roleList[0].name)
                     if (AgentsDone == False):
                         loc = line.split(' ')
                         sim_agent = SimAgent(
-                            name='agent-'+str(len(self.sim_agents)+1)+roleList[currentIndex].name,
+                            # name='agent-'+str(len(self.sim_agents)+1)+roleList[currentIndex].name,
+                            name='agent-'+str(len(self.sim_agents)+1),
                             role=roleList[currentIndex],
                             id_color=COLORS[len(self.sim_agents)],
                             location=(int(loc[0]), int(loc[1])))
