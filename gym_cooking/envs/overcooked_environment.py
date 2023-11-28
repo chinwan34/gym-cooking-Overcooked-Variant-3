@@ -93,11 +93,14 @@ class OvercookedEnvironment(gym.Env):
     def load_level(self, level, num_agents):
         x = 0
         y = 0
+        actionsNotSatisfied = []
         with open('utils/levels/{}.txt'.format(level), 'r') as file:
             # Mark the phases of reading.
             phase = 1
             twoAgentsDone = False
             threeAgentsDone = False
+            AgentsDone = False
+            currentIndex=0
             i2=0
             i3=0
             for line in file:
@@ -133,38 +136,53 @@ class OvercookedEnvironment(gym.Env):
 
                 # Phase 3: Read in agent locations (up to num_agents).
                 elif phase == 3:
-                    listofroles = [Chopper, Cooker, Deliverer]
-                    listofroles2 = [ChoppingWaiter, CookingWaiter]
+                    if not actionsNotSatisfied:
+                        for i in self.recipes:
+                            actionsNotSatisfied = actionsNotSatisfied + list(i.actions)
+                        
+                        actionsNotSatisfied = list(dict.fromkeys(actionsNotSatisfied))
+                        actionsNotSatisfied = set(action.name for action in actionsNotSatisfied)
                     
-                    if (num_agents == 2) and (twoAgentsDone == False):
+                    roleList = self.findSuitableRoles(actionsNotSatisfied, num_agents)
+                    print(roleList[0].name)
+                    if (AgentsDone == False):
                         loc = line.split(' ')
                         sim_agent = SimAgent(
-                            name='agent-'+str(len(self.sim_agents)+1),
-                            role=listofroles2[i2],
+                            name='agent-'+str(len(self.sim_agents)+1)+roleList[currentIndex].name,
+                            role=roleList[currentIndex],
                             id_color=COLORS[len(self.sim_agents)],
                             location=(int(loc[0]), int(loc[1])))
                         self.sim_agents.append(sim_agent)
-                        i2 +=1
+                        currentIndex+=1
                         if (len(self.sim_agents)) >= num_agents:
-                            twoAgentsDone = True
-                    else:      
-                        if (threeAgentsDone == False) and (twoAgentsDone == False):
-                            loc = line.split(' ')
-                            sim_agent = SimAgent(
-                                    name='agent-'+str(len(self.sim_agents)+1),
-                                    role=listofroles[i3%3],
-                                    id_color=COLORS[len(self.sim_agents)],
-                                    location=(int(loc[0]), int(loc[1])))
-                            self.sim_agents.append(sim_agent)
-                            i3 +=1
-                            if (len(self.sim_agents)) >= num_agents:
-                                threeAgentsDone = True
+                            AgentsDone = True
 
         self.distances = {}
         self.world.width = x+1
         self.world.height = y
         self.world.perimeter = 2*(self.world.width + self.world.height)
 
+    def findSuitableRoles(self, actionsNotSatisfied, num_agents):
+        listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), ChoppingWaiter(), MergingWaiter(),
+                        CookingWaiter(), BakingWaiter(), ExceptionalChef(), FryingWaiter(), Frier()]
+
+        actionNamePair = [(Merge, "Merge"), (Get, "Get"), (Deliver, "Deliver"), (Cook, "Cook"), (Fry, "Fry"), (Chop, "Chop"),
+                          (Bake, "Bake"), (Clean, "Clean")]
+    
+        combinationsBasedOnAgents = combinations(listOfRoles, num_agents)
+
+        for eachCombination in combinationsBasedOnAgents:
+            currentSet = set()
+            for i in eachCombination:
+                initialized = i
+                for action in initialized.probableActions:
+                    for (classType, stringUsed) in actionNamePair:
+                        if action == classType:
+                            currentSet.add(stringUsed)
+            set.union(currentSet)
+
+            if actionsNotSatisfied.issubset(currentSet):
+                return eachCombination
 
     def reset(self):
         self.world = World(arglist=self.arglist)

@@ -1,6 +1,6 @@
 # recipe planning
 import recipe_planner.utils as recipe
-from recipe_planner.utils import Get, Chop, Deliver, Merge
+from recipe_planner.utils import Get, Chop, Deliver, Merge, Bake, Cook, Fry, Clean
 
 # helpers
 import numpy as np
@@ -11,28 +11,82 @@ from itertools import combinations
 from collections import namedtuple
 
 class Role:
-    def __init__(self, probableActions):
-        self.probableActions = probableActions
+    def __init__(self):
+        self.probableActions = None
     
-class Cooker(Role):
-    def __init__(self, probableActions=(Get, Merge)):
-        self.probableActions = probableActions
+class Merger(Role):
+    def __init__(self):
+        self.probableActions = [Get, Merge]
+        self.name = "Merger"
 
 class Chopper(Role):
-    def __init__(self, probableActions=(Get, Chop)):
-        self.probableActions = probableActions
+    def __init__(self):
+        self.probableActions = [Get, Chop]
+        self.name = "Chopper"
 
 class Deliverer(Role):
-    def __init__(self, probableActions=(Get, Deliver)):
-        self.probableActions = probableActions
+    def __init__(self):
+        self.probableActions = [Get, Deliver]
+        self.name = "Deliverer"
+
+class Baker(Role):
+    def __init__(self):
+        self.probableActions = [Get, Bake]
+        self.name = "Baker"
+
+class Cooker(Role):
+    def __init__(self):
+        self.probableActions = [Get, Cook]
+        self.name = "Cooker"
+
+class Frier(Role):
+    def __init__(self):
+        self.probableActions = [Get, Fry]
+        self.name = "Fryer"
+
+class Cleaner(Role):
+    def __init__(self):
+        self.probableActions = [Get, Clean]
+        self.name = "Cleaner"
     
-class CookingWaiter(Role):
-    def __init__(self, probableActions=(Get, Merge, Deliver)):
-        self.probableActions = probableActions
+class MergingWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Merge, Deliver, Clean]
+        self.name = "MergingWaiter"
 
 class ChoppingWaiter(Role):
-    def __init__(self, probableActions=(Get, Merge, Deliver)):
-        self.probableActions = probableActions
+    def __init__(self):
+        self.probableActions = [Get, Chop, Deliver, Clean]
+        self.name = "ChoppingWaiter"
+
+class CookingWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Cook, Deliver, Clean]
+        self.name = "CookingWaiter"
+
+class BakingWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Bake, Deliver, Clean]
+        self.name = "BakingWaiter"
+
+class FryingWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Fry, Deliver, Clean]
+        self.name = "FryingWaiter"
+
+class ExceptionalChef(Role):
+    def __init__(self):
+        self.probableActions = [Get, Fry, Bake, Cook, Chop]
+        self.name = "ExceptionalChef"
+
+
+class InvincibleWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Chop, Cook, Clean, Bake, Merge, Deliver, Fry]
+        self.name = "InvincibleWaiter"
+
+
+
     
 
 
