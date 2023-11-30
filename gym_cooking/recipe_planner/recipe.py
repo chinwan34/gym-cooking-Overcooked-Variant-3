@@ -110,6 +110,7 @@ class FriedChickenRe(Recipe):
         self.add_ingredient(FriedChicken(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class SimplePizza(Recipe):
     def __init__(self):
@@ -118,6 +119,7 @@ class SimplePizza(Recipe):
         self.add_ingredient(Cheese(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
     
     def add_merge_actions(self):
          for i in range(2, len(self.contents)+1):
@@ -204,6 +206,7 @@ class SimpleBurger(Recipe):
         self.add_ingredient(Bread(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class LettuceBurger(Recipe):
     def __init__(self):
@@ -213,6 +216,7 @@ class LettuceBurger(Recipe):
         self.add_ingredient(Lettuce(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class TomatoBurger(Recipe):
     def __init__(self):
@@ -222,6 +226,7 @@ class TomatoBurger(Recipe):
         self.add_ingredient(Tomato(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class SaladBurger(Recipe):
     def __init__(self):
@@ -232,6 +237,7 @@ class SaladBurger(Recipe):
         self.add_ingredient(Lettuce(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class SimpleTomato(Recipe):
     def __init__(self):
@@ -239,6 +245,7 @@ class SimpleTomato(Recipe):
         self.add_ingredient(Tomato(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class SimpleLettuce(Recipe):
     def __init__(self):
@@ -246,6 +253,7 @@ class SimpleLettuce(Recipe):
         self.add_ingredient(Lettuce(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class Salad(Recipe):
     def __init__(self):
@@ -254,6 +262,7 @@ class Salad(Recipe):
         self.add_ingredient(Lettuce(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 class OnionSalad(Recipe):
     def __init__(self):
@@ -263,5 +272,6 @@ class OnionSalad(Recipe):
         self.add_ingredient(Onion(state_index=-1))
         self.add_goal()
         self.add_merge_actions()
+        self.add_uncleaned_plates_issue()
 
 

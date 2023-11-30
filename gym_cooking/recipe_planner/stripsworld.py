@@ -13,6 +13,7 @@ class STRIPSWorld:
         self.initial = recipe.STRIPSState()
         print("STRIPSWrold", recipes)
         self.recipes = recipes
+        self.numberOfPlates = 0
 
         # set initial state
         self.initial.add_predicate(recipe.NoPredicate())
@@ -20,6 +21,8 @@ class STRIPSWorld:
             if isinstance(obj, Object):
                 for obj_name in ['Plate', 'Tomato', 'Lettuce', 'Onion', 'Bread', 'Cheese']:
                     if obj.contains(obj_name):
+                        if obj_name == 'Plate':
+                            self.numberOfPlates += 1
                         self.initial.add_predicate(recipe.Fresh(obj_name))
                 for obj_name in ['Chicken', 'Fish']:
                     if obj.contains(obj_name):
@@ -30,14 +33,19 @@ class STRIPSWorld:
                 for obj_name in ['PizzaDough']:
                     if obj.contains(obj_name):
                         self.initial.add_predicate(recipe.Unbaked(obj_name))
-                
 
-    def generate_graph(self, recipe, max_path_length):
-        all_actions = recipe.actions   # set
+
+    def generate_graph(self, recipel, max_path_length, action_path_length):
+        all_actions = recipel.actions   # set
         goal_state = None
 
         new_preds = set()
         graph = nx.DiGraph()
+        if action_path_length != 0:
+            if recipe.Fresh("Plate") in self.initial.predicates:
+                self.initial.delete_predicate(recipe.Fresh("Plate"))
+                self.initial.add_predicate(recipe.Uncleaned("Plate"))
+
         graph.add_node(self.initial, obj=self.initial)
         frontier = set([self.initial])
         next_frontier = set()
@@ -46,14 +54,15 @@ class STRIPSWorld:
                 # for each action, check whether from this state
                 for a in all_actions:
                     if a.is_valid_in(state):
-                        next_state = a.get_next_from(state)
+                        next_state = a.get_next_from(state, self.numberOfPlates)
                         for p in next_state.predicates:
+                            # print(next_state)
                             new_preds.add(str(p))
                         graph.add_node(next_state, obj=next_state)
                         graph.add_edge(state, next_state, obj=a)
 
                         # as soon as goal is found, break and return                     
-                        if self.check_goal(recipe, next_state) and goal_state is None:
+                        if self.check_goal(recipel, next_state) and goal_state is None:
                             goal_state = next_state
                             return graph, goal_state
                         
@@ -72,7 +81,7 @@ class STRIPSWorld:
         action_paths = []
 
         for recipe in self.recipes:
-            graph, goal_state = self.generate_graph(recipe, max_path_length)
+            graph, goal_state = self.generate_graph(recipe, max_path_length, len(action_paths))
 
             if draw_graph:   # not recommended for path length > 4
                 nx.draw(graph, with_labels=True)

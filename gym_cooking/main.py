@@ -56,13 +56,19 @@ def fix_seed(seed):
     random.seed(seed)
 
 def findSuitableRoles(actionsNotSatisfied, num_agents):
-    listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), ChoppingWaiter(), MergingWaiter(),
-                    CookingWaiter(), BakingWaiter(), ExceptionalChef(), FryingWaiter(), Frier()]
+    listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), Frier()]
+    listOfRoles2 = [ChoppingWaiter(), MergingWaiter(), CookingWaiter(), ExceptionalChef(), BakingWaiter(), FryingWaiter()]
+    SingleAgentRole = [InvincibleWaiter()]
 
     actionNamePair = [(Merge, "Merge"), (Get, "Get"), (Deliver, "Deliver"), (Cook, "Cook"), (Fry, "Fry"), (Chop, "Chop"),
                         (Bake, "Bake"), (Clean, "Clean")]
 
-    combinationsBasedOnAgents = combinations(listOfRoles, num_agents)
+    if num_agents > 2:
+            combinationsBasedOnAgents = combinations(listOfRoles, num_agents)
+    elif num_agents == 2:
+        combinationsBasedOnAgents = combinations(listOfRoles2, num_agents)
+    elif num_agents == 1:
+        combinationsBasedOnAgents = SingleAgentRole
 
     for eachCombination in combinationsBasedOnAgents:
         currentSet = set()

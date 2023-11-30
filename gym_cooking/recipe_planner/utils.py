@@ -120,13 +120,25 @@ class Action:
                 return False
         return True
 
-    def get_next_from(self, state):
+    def get_next_from(self, state, num_of_plates):
         next_state = copy.copy(state)
         for predicate in self.pre:
             next_state.delete_predicate(predicate)  # remove first instance
         for predicate in self.post_add:
             next_state.add_predicate(predicate)
+        self.delete_duplicate_plate(next_state, num_of_plates)
         return next_state
+
+    def delete_duplicate_plate(self, stateUsed, num_of_plates):
+        if Fresh("Plate") in stateUsed.predicates:
+            counted = stateUsed.predicates.count(Fresh("Plate"))
+        else:
+            return
+        
+        while (num_of_plates > counted):
+            stateUsed.delete_predicate(Fresh("Plate"))
+            counted = counted - 1
+    
 
 '''
 Clean(X)
@@ -289,6 +301,7 @@ class STRIPSState:
 
     def contains(self, predicate):
         return predicate in self.predicates
+
 
 
 # GRAPHING
