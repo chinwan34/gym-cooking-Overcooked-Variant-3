@@ -23,7 +23,7 @@ def interact(agent, world):
     # if holding something
     elif agent.holding is not None:
         # if delivery in front --> deliver
-        if isinstance(gs, Delivery):
+        if isinstance(gs, Delivery) and (Deliver in agent.role.probableActions):
             obj = agent.holding
             if obj.is_deliverable():
                 gs.acquire(obj)
@@ -45,7 +45,7 @@ def interact(agent, world):
             # Get object on gridsquare/counter
             obj = world.get_object_at(gs.location, None, find_held_objects = False)
 
-            if mergeable(agent.holding, obj):
+            if mergeable(agent.holding, obj) and (Merge in agent.role.probableActions):
                 world.remove(obj)
                 o = gs.release() # agent is holding object
                 world.remove(agent.holding)
@@ -60,22 +60,23 @@ def interact(agent, world):
         # if holding something, empty gridsquare in front --> chop, cook, bake or drop
         elif not world.is_occupied(gs.location):
             obj = agent.holding
-            if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play:
+            if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play and Chop in agent.role.probableActions:
                 # normally chop, but if in playable game mode then put down first
                 obj.chop()
-            elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play:
+            elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play and Fry in agent.role.probableActions:
                 obj.fry()
-            elif isinstance(gs, CookingPan) and obj.needs_cooked() and not world.arglist.play:
+            elif isinstance(gs, CookingPan) and obj.needs_cooked() and not world.arglist.play and Cook in agent.role.probableActions:
                 obj.cook()
-            elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play:
+            elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play and Bake in agent.role.probableActions:
                 obj.bake()
-            elif isinstance(gs, Sink) and obj.needs_cleaned() and not world.arglist.play:
+            elif isinstance(gs, Sink) and obj.needs_cleaned() and not world.arglist.play and Clean in agent.role.probableActions:
                 obj.clean()
             else:
-                gs.acquire(obj) # obj is put onto gridsquare
-                agent.release()
-                assert world.get_object_at(gs.location, obj, find_held_objects =\
-                    False).is_held == False, "Verifying put down works"
+                if not isinstance(gs, Delivery):
+                    gs.acquire(obj) # obj is put onto gridsquare
+                    agent.release()
+                    assert world.get_object_at(gs.location, obj, find_held_objects =\
+                        False).is_held == False, "Verifying put down works"
 
     # if not holding anything
     elif agent.holding is None:
@@ -83,15 +84,15 @@ def interact(agent, world):
         if world.is_occupied(gs.location) and not isinstance(gs, Delivery):
             obj = world.get_object_at(gs.location, None, find_held_objects = False)
             # if in playable game mode, then chop raw items on cutting board
-            if isinstance(gs, Cutboard) and obj.needs_chopped() and world.arglist.play:
+            if isinstance(gs, Cutboard) and obj.needs_chopped() and world.arglist.play and Chop in agent.role.probableActions:
                 obj.chop()
-            elif isinstance(gs, Fryer) and obj.needs_fried() and world.arglist.play:
+            elif isinstance(gs, Fryer) and obj.needs_fried() and world.arglist.play and Fry in agent.role.probableActions:
                 obj.fry()
-            elif isinstance(gs, CookingPan) and obj.needs_cooked() and world.arglist.play:
+            elif isinstance(gs, CookingPan) and obj.needs_cooked() and world.arglist.play and Cook in agent.role.probableActions:
                 obj.cook()
-            elif isinstance(gs, PizzaOven) and obj.needs_baked() and world.arglist.play:
+            elif isinstance(gs, PizzaOven) and obj.needs_baked() and world.arglist.play and Bake in agent.role.probableActions:
                 obj.bake()
-            elif isinstance(gs, Sink) and obj.needs_cleaned() and world.arglist.play:
+            elif isinstance(gs, Sink) and obj.needs_cleaned() and world.arglist.play and Clean in agent.role.probableActions:
                 obj.clean()
             elif isinstance(gs, TrashCan) and world.arglist.play:
                 alphabetClassPair = [(Fish, 'f'), (FriedChicken, 'k'), (BurgerMeat, 'm'),
@@ -122,10 +123,10 @@ def interact(agent, world):
                 
                 world.remove(obj)
 
-
             else:
-                gs.release()
-                agent.acquire(obj)
+                if not isinstance(gs, Delivery):
+                    gs.release()
+                    agent.acquire(obj)
 
         # if empty in front --> interact
         elif not world.is_occupied(gs.location):

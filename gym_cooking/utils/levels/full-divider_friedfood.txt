@@ -4,7 +4,7 @@
 -   -   -
 k   -   f
 -   -   *
--   -   -
+-       -
 -1----f--
 
 FriedFishRe
@@ -12,3 +12,5 @@ FriedChickenRe
 
 1 2
 7 3
+6 5
+6 4
