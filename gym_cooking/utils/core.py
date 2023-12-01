@@ -26,7 +26,7 @@ class Chopper(Role):
 
 class Deliverer(Role):
     def __init__(self):
-        self.probableActions = [Get, Deliver]
+        self.probableActions = [Get, Deliver, Clean]
         self.name = "Deliverer"
 
 class Baker(Role):
@@ -42,7 +42,7 @@ class Cooker(Role):
 class Frier(Role):
     def __init__(self):
         self.probableActions = [Get, Fry]
-        self.name = "Fryer"
+        self.name = "Frier"
 
 class Cleaner(Role):
     def __init__(self):

@@ -137,8 +137,18 @@ class Game:
 
 
     def draw_agent(self, agent):
-        self.draw('agent-{}'.format(agent.color),
-            self.tile_size, self.scaled_location(agent.location))
+        if ("Chopper" == agent.role.name) or ("BakingWaiter" == agent.role.name) or ("FryingWaiter" == agent.role.name):
+            self.draw('agent-{}-{}'.format("blue", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
+        elif ("Baker" == agent.role.name) or ("Deliverer" == agent.role.name) or ("ChoppingWaiter" == agent.role.name):
+            self.draw('agent-{}-{}'.format("green", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
+        elif ("Merger" == agent.role.name) or ("Frier" == agent.role.name) or ("Cleaner" == agent.role.name) or ("ExceptionalChef" == agent.role.name):
+            self.draw('agent-{}-{}'.format("magenta", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
+        else:
+            self.draw('agent-{}-{}'.format("yellow", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
         self.draw_agent_object(agent.holding)
 
     def draw_agent_object(self, obj):

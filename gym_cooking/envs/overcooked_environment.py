@@ -171,7 +171,7 @@ class OvercookedEnvironment(gym.Env):
         elif num_agents == 2:
             combinationsBasedOnAgents = combinations(listOfRoles2, num_agents)
         elif num_agents == 1:
-            combinationsBasedOnAgents = SingleAgentRole
+            return SingleAgentRole
 
         for eachCombination in combinationsBasedOnAgents:
             currentSet = set()
