@@ -39,6 +39,9 @@ def interact(agent, world):
                         gsPlate.acquire(Object(location=Game.plate_location[i], contents=RepToClass["p"](state_index=0)))
                         world.insert(gsPlate.holding)
                         break
+        
+        elif isinstance(gs, Delivery):
+            pass
 
         # if occupied gridsquare in front --> try merging
         elif world.is_occupied(gs.location):
