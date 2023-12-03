@@ -135,9 +135,9 @@ class Action:
         else:
             return
         
-        while (num_of_plates > counted) and Fresh("Plate") in stateUsed.predicates:
-            stateUsed.delete_predicate(Fresh("Plate"))
-            counted = counted - 1
+    #     while (num_of_plates > counted) and Fresh("Plate") in stateUsed.predicates:
+    #         stateUsed.delete_predicate(Fresh("Plate"))
+    #         counted = counted - 1
     
 
 '''

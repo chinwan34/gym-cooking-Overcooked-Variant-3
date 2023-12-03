@@ -17,7 +17,7 @@ def interact(agent, world):
     gs = world.get_gridsquare_at((action_x, action_y))
 
     # if floor in front --> move to that square
-    if isinstance(gs, Floor): #and gs.holding is None:
+    if isinstance(gs, Floor) and gs.holding is None:
         agent.move_to(gs.location)
 
     # if holding something

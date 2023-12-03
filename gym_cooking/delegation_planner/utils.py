@@ -49,8 +49,6 @@ class SubtaskAllocDistribution():
                     if type(f.subtask) in role.probableActions:
                         usableProbabilitiesAndActions.append((f, p))
         
-        print(usableProbabilitiesAndActions)
-        
         return usableProbabilitiesAndActions
 
     def get_max_bucketed(self):
