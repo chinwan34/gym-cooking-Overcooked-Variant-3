@@ -94,8 +94,8 @@ class RealAgent:
 
         # Select subtask based on Bayesian Delegation.
         self.update_subtasks(env=obs)
-        self.new_subtask, self.new_subtask_agent_names = self.delegator.select_subtask(
-                agent_name=self.name, role=self.role())
+        self.new_subtask, self.new_subtask_agent_names = self.delegator.select_subtask2(
+                agent_name=self.name, role=self.role)
         self.plan(copy.copy(obs))
         return self.action
 

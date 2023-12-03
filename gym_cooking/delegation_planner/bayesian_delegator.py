@@ -10,6 +10,8 @@ from itertools import permutations, product, combinations
 import scipy as sp
 import numpy as np
 import copy
+import random
+from operator import itemgetter
 
 SubtaskAllocation = namedtuple("SubtaskAllocation", "subtask subtask_agent_names")
 
@@ -182,8 +184,8 @@ class BayesianDelegator(Delegator):
             if other_agent_name != self.agent_name:
                 # Get most likely subtask and subtask agents for other agent
                 # based on my beliefs.
-                subtask, subtask_agent_names = self.select_subtask(
-                        agent_name=other_agent_name, role=other_role_name())
+                subtask, subtask_agent_names = self.select_subtask2(
+                        agent_name=other_agent_name, role=other_role_name)
 
                 if subtask is None:
                     # Using cooperative backup_subtask for this agent's None subtask.
@@ -421,15 +423,20 @@ class BayesianDelegator(Delegator):
     def select_subtask2(self, agent_name, role):
         """Return subtask and subtask_agent_names for agent with agent_name
         with max. probability."""
-        max_subtask_alloc = self.probs.get_max()
+        max_subtask_allocs = []
+        usableProbabilitiesAndActions = self.probs.get_related_probs(agent_name, role)
+
+        if len(usableProbabilitiesAndActions) > 0:
+            max_prob = max(usableProbabilitiesAndActions, key=itemgetter(1))
+            for (subtaskObject, p) in usableProbabilitiesAndActions:
+                if p == max_prob[1]:
+                    max_subtask_allocs.append(subtaskObject)
+            max_subtask_alloc = random.choice(max_subtask_allocs)
+        else:
+            max_subtask_alloc = None
         if max_subtask_alloc is not None:
-            for t in max_subtask_alloc:
-                print(type(t.subtask))
-                if agent_name in t.subtask_agent_names:
-                    if self.check_role_responsibilities(role, t.subtask) == False:
-                        return None, t.subtask_agent_names
-                    else:
-                        return t.subtask, t.subtask_agent_names
+            if agent_name in max_subtask_alloc.subtask_agent_names:
+                return max_subtask_alloc.subtask, max_subtask_alloc.subtask_agent_names
         return None, agent_name
 
     def ensure_at_least_one_subtask(self):
