@@ -7,7 +7,7 @@ m       -
 /       -
 --b---l--
 
-SaladBurger
+LettuceBurger
 
 1 3
 1 4

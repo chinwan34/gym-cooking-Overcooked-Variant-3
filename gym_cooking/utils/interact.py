@@ -63,16 +63,15 @@ def interact(agent, world):
         # if holding something, empty gridsquare in front --> chop, cook, bake or drop
         elif not world.is_occupied(gs.location):
             obj = agent.holding
-            if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play and Chop in agent.role.probableActions:
-                # normally chop, but if in playable game mode then put down first
+            if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play: #and Chop in agent.role.probableActions:
                 obj.chop()
-            elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play and Fry in agent.role.probableActions:
+            elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play: #and Fry in agent.role.probableActions:
                 obj.fry()
-            elif isinstance(gs, CookingPan) and obj.needs_cooked() and not world.arglist.play and Cook in agent.role.probableActions:
+            elif isinstance(gs, CookingPan) and obj.needs_cooked() and not world.arglist.play: #and Cook in agent.role.probableActions:
                 obj.cook()
-            elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play and Bake in agent.role.probableActions:
+            elif isinstance(gs, PizzaOven) and obj.needs_baked() and not world.arglist.play: #and Bake in agent.role.probableActions:
                 obj.bake()
-            elif isinstance(gs, Sink) and obj.needs_cleaned() and not world.arglist.play and Clean in agent.role.probableActions:
+            elif isinstance(gs, Sink) and obj.needs_cleaned() and not world.arglist.play: #and Clean in agent.role.probableActions:
                 obj.clean()
             else:
                 if not isinstance(gs, Delivery):

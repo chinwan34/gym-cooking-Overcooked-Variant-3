@@ -144,6 +144,8 @@ def main_loop(arglist):
         for agent in real_agents:
             action = agent.select_action(obs=obs)
             action_dict[agent.name] = action
+        
+        print("After action")
 
         obs, reward, done, info = env.step(action_dict=action_dict)
 
