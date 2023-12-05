@@ -105,11 +105,18 @@ class RealAgent:
         # [path for recipe 1, path for recipe 2, ...] where each path is a list of actions.
         subtasks = self.sw.get_subtasks(max_path_length=self.arglist.max_num_subtasks)
         all_subtasks = [subtask for path in subtasks for subtask in path]
+        
+        returnSubtasks = []
+        for subtask in all_subtasks:
+            if type(subtask) in self.role.probableActions:
+                returnSubtasks.append(subtask)
+        print("Agent", returnSubtasks, self.role)
 
         # Uncomment below to view graph for recipe path i
         # i = 0
         # pg = recipe_utils.make_predicate_graph(self.sw.initial, recipe_paths[i])
         # ag = recipe_utils.make_action_graph(self.sw.initial, recipe_paths[i])
+        return returnSubtasks
         return all_subtasks
 
     def setup_subtasks(self, env):
