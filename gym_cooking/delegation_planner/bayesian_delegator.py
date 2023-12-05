@@ -414,7 +414,7 @@ class BayesianDelegator(Delegator):
                             
                     if (type(ts[1]) in remaining_agents_roles[1][1].probableActions or ts[1] == None):
                         if firstCan0 == False and secondCan0 == True:
-                            if type(ts[1]) in remaining_agents_roles[0][1].probableActions or ts[1] == None  and entered == 0:
+                            if (type(ts[1]) in remaining_agents_roles[0][1].probableActions or ts[1] == None) and entered == 0:
                                 listToUse.append(remaining_agents_roles[0][0])
                                 task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
                                 current_subtask_alloc.append(task2)
@@ -425,10 +425,11 @@ class BayesianDelegator(Delegator):
                             current_subtask_alloc.append(task2)
                             listToUse.clear()
                     else:
-                        if type(ts[1]) in remaining_agents_roles[0][1].probableActions or ts[1] == None  and entered == 0:
+                        if (type(ts[1]) in remaining_agents_roles[0][1].probableActions or ts[1] == None) and entered == 0:
                             listToUse.append(remaining_agents_roles[0][0])
                             task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
                             current_subtask_alloc.append(task2)
+                            listToUse.clear()
                         else:
                             firstCan1 = False    
                         if secondCan0 == True and firstCan1 == True:
@@ -481,6 +482,7 @@ class BayesianDelegator(Delegator):
                                 remaining_agents=remaining_agents,
                                 remaining_subtasks=remaining_subtasks,
                                 base_subtask_alloc=subtask_alloc)
+        print(SubtaskAllocDistribution(subtask_allocs))
         return SubtaskAllocDistribution(subtask_allocs)
 
     def add_subtasks_alter(self):
@@ -609,7 +611,10 @@ class BayesianDelegator(Delegator):
             finalReturn = []
             for subtaskAlloc in subtask_allocs:
                 if subtaskAlloc not in finalReturn:
-                    finalReturn.append(subtaskAlloc)
+                    if len(subtaskAlloc) == 1 and len(subtaskAlloc[0].subtask_agent_names) != 2:
+                        pass
+                    else:
+                        finalReturn.append(subtaskAlloc)
         print("subtask_allocs", SubtaskAllocDistribution(subtask_allocs))
         print("final return", SubtaskAllocDistribution(finalReturn))
         return SubtaskAllocDistribution(finalReturn)
