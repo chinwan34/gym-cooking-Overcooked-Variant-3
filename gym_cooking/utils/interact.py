@@ -27,10 +27,9 @@ def interact(agent, world):
             obj = agent.holding
             if obj.is_deliverable():
                 gs.acquire(obj)
-                world.insert(obj)
+                # world.insert(obj)
                 agent.release()
                 print('\nDelivered {}!'.format(obj.full_name))
-                time.sleep(2)
 
                 for i in range(0, len(Game.plate_location)):
                     (currentX,currentY) = Game.plate_location[i]

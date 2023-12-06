@@ -4,6 +4,7 @@ from delegation_planner.utils import SubtaskAllocDistribution
 from navigation_planner.utils import get_subtask_obj, get_subtask_action_obj, get_single_actions
 from utils.interact import interact
 from utils.utils import agent_settings
+from recipe_planner.utils import Merge
 
 from collections import defaultdict, namedtuple
 from itertools import permutations, product, combinations
@@ -473,6 +474,7 @@ class BayesianDelegator(Delegator):
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
+                        print("Current actions", ts)
                         subtask_alloc = [
                                 SubtaskAllocation(subtask=ts[0], subtask_agent_names=(first_agents[0],)),
                                 SubtaskAllocation(subtask=ts[1], subtask_agent_names=(first_agents[1],)),]
@@ -482,7 +484,6 @@ class BayesianDelegator(Delegator):
                                 remaining_agents=remaining_agents,
                                 remaining_subtasks=remaining_subtasks,
                                 base_subtask_alloc=subtask_alloc)
-        print(SubtaskAllocDistribution(subtask_allocs))
         return SubtaskAllocDistribution(subtask_allocs)
 
     def add_subtasks_alter(self):
@@ -503,10 +504,9 @@ class BayesianDelegator(Delegator):
                 subtasks_temp = subtasks + [None for _ in range(len(self.all_agent_names) - 1)]
                 # Cooperative subtasks (same subtask assigned to agents).
                 for t in subtasks_temp:
-                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None:
+                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None or type(t) == Merge:
                         agentNamesToPut = [first_agent[0] for first_agent in first_agents]
                         subtask_alloc = [SubtaskAllocation(subtask=t, subtask_agent_names=tuple(agentNamesToPut))]
-                        print("Current Testing add_subtasks__________________________________")
                         remaining_agents = sorted(list(set(self.all_agent_role_names) - set(first_agents)))
                         remaining_subtasks = list(set(subtasks_temp) - set([t]))
                     else:
@@ -522,6 +522,7 @@ class BayesianDelegator(Delegator):
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
+                        print("Allowed actions", ts)
                         listToUse = []
                         agentToDelete = []
                         subtask_alloc = []
@@ -606,8 +607,6 @@ class BayesianDelegator(Delegator):
                                 remaining_agents_roles=remaining_agents,
                                 remaining_subtasks=remaining_subtasks,
                                 base_subtask_alloc=subtask_alloc)
-                    
-            
             finalReturn = []
             for subtaskAlloc in subtask_allocs:
                 if subtaskAlloc not in finalReturn:
@@ -615,8 +614,8 @@ class BayesianDelegator(Delegator):
                         pass
                     else:
                         finalReturn.append(subtaskAlloc)
-        print("subtask_allocs", SubtaskAllocDistribution(subtask_allocs))
-        print("final return", SubtaskAllocDistribution(finalReturn))
+        # print("subtask_allocs", SubtaskAllocDistribution(subtask_allocs))
+        # print("final return", SubtaskAllocDistribution(finalReturn))
         return SubtaskAllocDistribution(finalReturn)
 
     def add_greedy_subtasks(self):
