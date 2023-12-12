@@ -109,7 +109,6 @@ def interact(agent, world):
                 for i in range(0, len(emptyNewContentsWithString)):
                     for j in range(0, len(Game.food_locations)):
                         if Game.food_locations[j][0] == emptyNewContentsWithString[i]:
-                            print("here")
                             (currentX,currentY) = Game.food_locations[j][1]
                             gsPlate = world.get_gridsquare_at((currentX, currentY))
                             if gsPlate.holding is None:
