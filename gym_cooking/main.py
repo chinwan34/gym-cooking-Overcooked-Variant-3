@@ -6,6 +6,7 @@ from utils.agent import RealAgent, SimAgent, COLORS
 from utils.core import *
 from misc.game.gameplay import GamePlay
 from misc.metrics.metrics_bag import Bag
+from random import randrange
 
 import numpy as np
 import random
@@ -54,12 +55,43 @@ def fix_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
 
+def findSuitableRoles(actionsNotSatisfied, num_agents):
+    listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), Frier()]
+    listOfRoles2 = [ChoppingWaiter(), MergingWaiter(), CookingWaiter(), ExceptionalChef(), BakingWaiter(), FryingWaiter()]
+    SingleAgentRole = [InvincibleWaiter()]
+
+    actionNamePair = [(Merge, "Merge"), (Get, "Get"), (Deliver, "Deliver"), (Cook, "Cook"), (Fry, "Fry"), (Chop, "Chop"),
+                        (Bake, "Bake"), (Clean, "Clean")]
+
+    if num_agents > 2:
+            combinationsBasedOnAgents = combinations(listOfRoles, num_agents)
+    elif num_agents == 2:
+        combinationsBasedOnAgents = combinations(listOfRoles2, num_agents)
+    elif num_agents == 1:
+        combinationsBasedOnAgents = SingleAgentRole
+
+    for eachCombination in combinationsBasedOnAgents:
+        currentSet = set()
+        for i in eachCombination:
+            initialized = i
+            for action in initialized.probableActions:
+                for (classType, stringUsed) in actionNamePair:
+                    if action == classType:
+                        currentSet.add(stringUsed)
+        set.union(currentSet)
+
+        if actionsNotSatisfied.issubset(currentSet):
+            return eachCombination
+
 def initialize_agents(arglist):
     real_agents = []
 
     with open('utils/levels/{}.txt'.format(arglist.level), 'r') as f:
         phase = 1
         recipes = []
+        index = 0
+        finished = False
+        actionLeft = []
         for line in f:
             line = line.strip('\n')
             if line == '':
@@ -71,15 +103,27 @@ def initialize_agents(arglist):
 
             # phase 3: read in agent locations (up to num_agents)
             elif phase == 3:
-                if len(real_agents) < arglist.num_agents:
+                if not actionLeft:
+                    for i in recipes:
+                        actionLeft = actionLeft + list(i.actions)
+                    actionLeft = list(dict.fromkeys(actionLeft))
+                    actionLeft = set(action.name for action in actionLeft)
+
+                roleList = findSuitableRoles(actionLeft, arglist.num_agents)
+                if (finished == False):
+                    print("I got here")
                     loc = line.split(' ')
                     real_agent = RealAgent(
-                            arglist=arglist,
-                            name='agent-'+str(len(real_agents)+1),
-                            id_color=COLORS[len(real_agents)],
-                            recipes=recipes)
+                        arglist=arglist,
+                        # name='agent-'+str(len(real_agents)+1)+roleList[index].name,
+                        name='agent-'+str(len(real_agents)+1),
+                        id_color=COLORS[len(real_agents)],
+                        recipes=recipes,
+                        role=roleList[index]
+                    )
                     real_agents.append(real_agent)
-
+                    if len(real_agents) >= arglist.num_agents:
+                        finished = True
     return real_agents
 
 def main_loop(arglist):
@@ -100,6 +144,8 @@ def main_loop(arglist):
         for agent in real_agents:
             action = agent.select_action(obs=obs)
             action_dict[agent.name] = action
+        
+        print("After action")
 
         obs, reward, done, info = env.step(action_dict=action_dict)
 

@@ -39,6 +39,26 @@ class Fresh(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Fresh', (obj,))
 
+class Uncleaned(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Uncleaned', (obj,))
+
+class Cleaned(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Cleaned', (obj,))
+
+class Unfried(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Unfried', (obj,))
+
+class Unbaked(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Unbaked', (obj,))
+
+class Uncooked(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Uncooked', (obj,))
+
 class Chopped(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Chopped', (obj,))
@@ -55,7 +75,9 @@ class Merged(Predicate):
     def __init__(self, obj):
         Predicate.__init__(self, 'Merged', (obj,))
 
-
+class Uncleaned(Predicate):
+    def __init__(self, obj):
+        Predicate.__init__(self, 'Uncleaned', (obj,))
 
 
 # ACTIONS
@@ -98,13 +120,86 @@ class Action:
                 return False
         return True
 
-    def get_next_from(self, state):
+    def get_next_from(self, state, num_of_plates):
         next_state = copy.copy(state)
         for predicate in self.pre:
             next_state.delete_predicate(predicate)  # remove first instance
         for predicate in self.post_add:
             next_state.add_predicate(predicate)
+        self.delete_duplicate_plate(next_state, num_of_plates)
         return next_state
+
+    def delete_duplicate_plate(self, stateUsed, num_of_plates):
+        if Fresh("Plate") in stateUsed.predicates:
+            counted = stateUsed.predicates.count(Fresh("Plate"))
+        else:
+            return
+        
+        while (num_of_plates < counted) and Fresh("Plate") in stateUsed.predicates:
+            stateUsed.delete_predicate(Fresh("Plate"))
+            counted = counted - 1
+        
+        newFreshCounted = stateUsed.predicates.count(Fresh("Plate"))
+        newUncleanedCounted = stateUsed.predicates.count(Uncleaned("Plate"))
+        if (num_of_plates < newFreshCounted + newUncleanedCounted):
+            stateUsed.delete_predicate(Fresh("Plate"))
+            newFreshCounted = newFreshCounted - 1
+    
+
+'''
+Clean(X)
+Pre: Uncleaned(X)
+Post: Cleaned(X)
+'''
+class Clean(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args= (obj,)
+
+        self.pre_default = [Uncleaned(obj)]
+        self.post_add_default = [Fresh(obj)]
+
+        Action.__init__(self, 'Clean', pre, post_add)
+
+'''
+Fry(X)
+Pre: Unfried(X)
+Post: Cooked(X)
+'''
+class Fry(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args= (obj,)
+
+        self.pre_default = [Unfried(obj)]
+        self.post_add_default = [Cooked(obj)]
+
+        Action.__init__(self, 'Fry', pre, post_add)
+
+'''
+bake(X)
+Pre: Unbaked(X-Y), Merged(X-Y)
+Post: Cooked(X)
+'''
+class Bake(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+        self.args= (obj,)
+        self.pre_default = [Unbaked(obj)]
+        self.post_add_default = [Cooked(obj)]
+
+        Action.__init__(self, 'Bake', pre, post_add)
+
+'''
+cook(X)
+Pre: Uncooked(X)
+Post: Cooked(X)
+'''
+class Cook(Action):
+    def __init__(self, obj, pre=None, post_add=None):
+
+        self.args = (obj,)
+        self.pre_default = [Uncooked(obj)]
+        self.post_add_default = [Cooked(obj)]
+
+        Action.__init__(self, 'Cook', pre, post_add)
 
 '''
 Get(X)
@@ -113,10 +208,18 @@ Post: Fresh(X)
 '''
 class Get(Action):
     def __init__(self, obj, pre=None, post_add=None):
+        from utils.core import BurgerMeat, FriedChicken, Fish, Plate
         self.args = (obj,)   #('Tomato')
 
         self.pre_default = [NoPredicate()]
-        self.post_add_default = [Fresh(obj), NoPredicate()]
+        if (isinstance(obj, FriedChicken)) or (isinstance(obj, Fish)):
+            self.post_add_default = [Unfried(obj), NoPredicate()]
+        elif isinstance(obj, BurgerMeat):
+            self.post_add_default = [Uncooked(obj), NoPredicate()]
+        elif isinstance(obj, Plate):
+            self.post_add_deafult = [NoPredicate()]
+        else:
+            self.post_add_default = [Fresh(obj), NoPredicate()]
 
         Action.__init__(self, 'Get', pre, post_add)
 
@@ -127,6 +230,7 @@ Post: Chopped(X), !Fresh(X)
 '''
 class Chop(Action):
     def __init__(self, obj, pre=None, post_add=None):
+        from utils.core import Cheese
         self.args = (obj,)
 
         self.pre_default = [Fresh(obj)]
@@ -141,11 +245,20 @@ Post: Merged(X-Y), !SomeState(X), !SomeState(Y)
 '''
 class Merge(Action):
     def __init__(self, arg1, arg2, pre=None, post_add=None):
+        from utils.core import BurgerMeat, FriedChicken, Fish, Plate, PizzaDough
         self.args = (arg1, arg2)
         #self.args = tuple(sorted([arg1, arg2]))
         # sorted because it doesn't matter order of merging
 
-        self.pre_default = [Chopped(arg1), Merged(arg2)]
+        if (isinstance(arg1, BurgerMeat)) or (isinstance(arg1, FriedChicken)) or (isinstance(arg1, Fish)):
+            self.pre_default = [Cooked(arg1), Merged(arg2)]
+        elif (isinstance(arg1, PizzaDough)):
+            self.pre_default = [Unbaked(arg1), Merged(arg2)]
+        elif (isinstance(arg1, Plate)):
+            self.pre_default = [Fresh(arg1), Merged(arg2)]
+        else: 
+            self.pre_default = [Chopped(arg1), Merged(arg2)]
+        
         self.post_add_default = [Merged('-'.join(sorted(arg1.split('-') + arg2.split('-'))))]
 
         Action.__init__(self, 'Merge', pre, post_add)
@@ -194,6 +307,7 @@ class STRIPSState:
 
     def contains(self, predicate):
         return predicate in self.predicates
+
 
 
 # GRAPHING

@@ -39,6 +39,8 @@ class OvercookedEnvironment(gym.Env):
         self.t = 0
         self.set_filename()
 
+        
+
         # For visualizing episode.
         self.rep = []
 
@@ -91,9 +93,12 @@ class OvercookedEnvironment(gym.Env):
     def load_level(self, level, num_agents):
         x = 0
         y = 0
+        actionsNotSatisfied = []
         with open('utils/levels/{}.txt'.format(level), 'r') as file:
             # Mark the phases of reading.
             phase = 1
+            AgentsDone = False
+            currentIndex=0
             for line in file:
                 line = line.strip('\n')
                 if line == '':
@@ -103,8 +108,9 @@ class OvercookedEnvironment(gym.Env):
                 elif phase == 1:
                     for x, rep in enumerate(line):
                         # Object, i.e. Tomato, Lettuce, Onion, or Plate.
-                        if rep in 'tlop':
+                        if rep in 'tlopkfmbcP':
                             counter = Counter(location=(x, y))
+
                             obj = Object(
                                     location=(x, y),
                                     contents=RepToClass[rep]())
@@ -126,19 +132,59 @@ class OvercookedEnvironment(gym.Env):
 
                 # Phase 3: Read in agent locations (up to num_agents).
                 elif phase == 3:
-                    if len(self.sim_agents) < num_agents:
+                    if not actionsNotSatisfied:
+                        for i in self.recipes:
+                            actionsNotSatisfied = actionsNotSatisfied + list(i.actions)
+                        
+                        actionsNotSatisfied = list(dict.fromkeys(actionsNotSatisfied))
+                        actionsNotSatisfied = set(action.name for action in actionsNotSatisfied)
+                    
+                    roleList = self.findSuitableRoles(actionsNotSatisfied, num_agents)
+                    if (AgentsDone == False):
                         loc = line.split(' ')
                         sim_agent = SimAgent(
-                                name='agent-'+str(len(self.sim_agents)+1),
-                                id_color=COLORS[len(self.sim_agents)],
-                                location=(int(loc[0]), int(loc[1])))
+                            # name='agent-'+str(len(self.sim_agents)+1)+roleList[currentIndex].name,
+                            name='agent-'+str(len(self.sim_agents)+1),
+                            role=roleList[currentIndex],
+                            id_color=COLORS[len(self.sim_agents)],
+                            location=(int(loc[0]), int(loc[1])))
                         self.sim_agents.append(sim_agent)
+                        currentIndex+=1
+                        if (len(self.sim_agents)) >= num_agents:
+                            AgentsDone = True
 
         self.distances = {}
         self.world.width = x+1
         self.world.height = y
         self.world.perimeter = 2*(self.world.width + self.world.height)
 
+    def findSuitableRoles(self, actionsNotSatisfied, num_agents):
+        listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), Frier()]
+        listOfRoles2 = [ChoppingWaiter(), MergingWaiter(), CookingWaiter(), ExceptionalChef(), BakingWaiter(), FryingWaiter()]
+        SingleAgentRole = [InvincibleWaiter()]
+        
+        actionNamePair = [(Merge, "Merge"), (Get, "Get"), (Deliver, "Deliver"), (Cook, "Cook"), (Fry, "Fry"), (Chop, "Chop"),
+                          (Bake, "Bake"), (Clean, "Clean")]
+    
+        if num_agents > 2:
+            combinationsBasedOnAgents = combinations(listOfRoles, num_agents)
+        elif num_agents == 2:
+            combinationsBasedOnAgents = combinations(listOfRoles2, num_agents)
+        elif num_agents == 1:
+            return SingleAgentRole
+
+        for eachCombination in combinationsBasedOnAgents:
+            currentSet = set()
+            for i in eachCombination:
+                initialized = i
+                for action in initialized.probableActions:
+                    for (classType, stringUsed) in actionNamePair:
+                        if action == classType:
+                            currentSet.add(stringUsed)
+            set.union(currentSet)
+
+            if actionsNotSatisfied.issubset(currentSet):
+                return eachCombination
 
     def reset(self):
         self.world = World(arglist=self.arglist)
@@ -155,10 +201,13 @@ class OvercookedEnvironment(gym.Env):
         self.termination_info = ""
         self.successful = False
 
+        print("Before load level")
+
         # Load world & distances.
         self.load_level(
                 level=self.arglist.level,
                 num_agents=self.arglist.num_agents)
+        print("On env.reset location")
         self.all_subtasks = self.run_recipes()
         self.world.make_loc_to_gridsquare()
         self.world.make_reachability_graph()
@@ -264,6 +313,9 @@ class OvercookedEnvironment(gym.Env):
 
     def get_agent_names(self):
         return [agent.name for agent in self.sim_agents]
+    
+    def get_agent_role_names(self):
+        return [(agent.name, agent.role) for agent in self.sim_agents]
 
     def run_recipes(self):
         """Returns different permutations of completing recipes."""
@@ -469,4 +521,4 @@ class OvercookedEnvironment(gym.Env):
 
         # Save all distances under world as well.
         self.world.distances = self.distances
-
+    

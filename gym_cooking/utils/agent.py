@@ -9,6 +9,7 @@ from delegation_planner.bayesian_delegator import BayesianDelegator
 # Navigation planner
 from navigation_planner.planners.e2e_brtdp import E2E_BRTDP
 import navigation_planner.utils as nav_utils
+from utils.core import *
 
 # Other core modules
 from utils.core import Counter, Cutboard
@@ -28,11 +29,12 @@ COLORS = ['blue', 'magenta', 'yellow', 'green']
 class RealAgent:
     """Real Agent object that performs task inference and plans."""
 
-    def __init__(self, arglist, name, id_color, recipes):
+    def __init__(self, arglist, name, id_color, recipes, role):
         self.arglist = arglist
         self.name = name
         self.color = id_color
         self.recipes = recipes
+        self.role = role
 
         # Bayesian Delegation.
         self.reset_subtasks()
@@ -64,7 +66,8 @@ class RealAgent:
         a = Agent(arglist=self.arglist,
                 name=self.name,
                 id_color=self.color,
-                recipes=self.recipes)
+                recipes=self.recipes,
+                role=self.role)
         a.subtask = self.subtask
         a.new_subtask = self.new_subtask
         a.subtask_agent_names = self.subtask_agent_names
@@ -92,7 +95,7 @@ class RealAgent:
         # Select subtask based on Bayesian Delegation.
         self.update_subtasks(env=obs)
         self.new_subtask, self.new_subtask_agent_names = self.delegator.select_subtask(
-                agent_name=self.name)
+                agent_name=self.name, role=self.role)
         self.plan(copy.copy(obs))
         return self.action
 
@@ -115,6 +118,7 @@ class RealAgent:
         self.delegator = BayesianDelegator(
                 agent_name=self.name,
                 all_agent_names=env.get_agent_names(),
+                all_agent_role_names=env.get_agent_role_names(),
                 model_type=self.model_type,
                 planner=self.planner,
                 none_action_prob=self.none_action_prob)
@@ -259,8 +263,9 @@ class RealAgent:
 class SimAgent:
     """Simulation agent used in the environment object."""
 
-    def __init__(self, name, id_color, location):
+    def __init__(self, name, role, id_color, location):
         self.name = name
+        self.role = role
         self.color = id_color
         self.location = location
         self.holding = None
@@ -271,7 +276,7 @@ class SimAgent:
         return color(self.name[-1], self.color)
 
     def __copy__(self):
-        a = SimAgent(name=self.name, id_color=self.color,
+        a = SimAgent(name=self.name, role=self.role, id_color=self.color,
                 location=self.location)
         a.__dict__ = self.__dict__.copy()
         if self.holding is not None:

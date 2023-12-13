@@ -40,6 +40,16 @@ class SubtaskAllocDistribution():
             max_subtask_allocs = [subtask_alloc for subtask_alloc, p in self.probs.items() if p == max_prob]
             return random.choice(max_subtask_allocs)
         return None
+    
+    def get_related_probs(self, agent_name, role):
+        usableProbabilitiesAndActions = []
+        for subtask_alloc, p in self.probs.items():
+            for f in subtask_alloc:
+                if agent_name in f.subtask_agent_names:
+                    if type(f.subtask) in role.probableActions:
+                        usableProbabilitiesAndActions.append((f, p))
+        
+        return usableProbabilitiesAndActions
 
     def get_max_bucketed(self):
         subtasks = []
@@ -66,6 +76,7 @@ class SubtaskAllocDistribution():
                 valid_subtask_allocs.append(subtask)
                 valid_p.append(p)
         return valid_subtask_allocs[np.argmax(valid_p)]
+
 
     def set(self, subtask_alloc, value):
         self.probs[tuple(subtask_alloc)] = value

@@ -18,6 +18,10 @@ def get_image(path):
 
 
 class Game:
+    plate_location = []
+    food_locations = []
+    gridsquare_locations = []
+
     def __init__(self, world, sim_agents, play=False):
         self._running = True
         self.world = world
@@ -37,6 +41,10 @@ class Game:
         self.holding_container_size = tuple((self.container_scale * np.asarray(self.holding_size)).astype(int))
         #self.font = pygame.font.SysFont('arialttf', 10)
 
+        self.get_plate_location()
+        self.get_all_food_plate_location()
+        
+        
 
     def on_init(self):
         pygame.init()
@@ -94,6 +102,31 @@ class Game:
             pygame.draw.rect(self.screen, Color.COUNTER, fill)
             pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
             self.draw('cutboard', self.tile_size, sl)
+        
+        elif isinstance(gs, CookingPan):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('Cookingpan', self.tile_size, sl)
+        
+        elif isinstance(gs, Fryer):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('Fryer', self.tile_size, sl)
+        
+        elif isinstance(gs, PizzaOven):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('PizzaOven', self.tile_size, sl)
+        
+        elif isinstance(gs, Sink):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('Sink', self.tile_size, sl)
+        
+        elif isinstance(gs, TrashCan):
+            pygame.draw.rect(self.screen, Color.COUNTER, fill)
+            pygame.draw.rect(self.screen, Color.COUNTER_BORDER, fill, 1)
+            self.draw('TrashCan', self.tile_size, sl)
 
         return
 
@@ -104,13 +137,28 @@ class Game:
 
 
     def draw_agent(self, agent):
-        self.draw('agent-{}'.format(agent.color),
-            self.tile_size, self.scaled_location(agent.location))
+        if ("Chopper" == agent.role.name) or ("BakingWaiter" == agent.role.name) or ("FryingWaiter" == agent.role.name):
+            self.draw('agent-{}-{}'.format("blue", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
+        elif ("Baker" == agent.role.name) or ("Deliverer" == agent.role.name) or ("ChoppingWaiter" == agent.role.name):
+            self.draw('agent-{}-{}'.format("green", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
+        elif ("Merger" == agent.role.name) or ("Frier" == agent.role.name) or ("Cleaner" == agent.role.name) or ("ExceptionalChef" == agent.role.name):
+            self.draw('agent-{}-{}'.format("magenta", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
+        else:
+            self.draw('agent-{}-{}'.format("yellow", agent.role.name),
+                self.tile_size, self.scaled_location(agent.location))
         self.draw_agent_object(agent.holding)
 
     def draw_agent_object(self, obj):
         # Holding shows up in bottom right corner.
         if obj is None: return
+        for i in obj.contents:
+            if (isinstance(i, Plate)) and (i.state_index == 0):
+                # i.update_dirty_name()
+                self.draw('DirtyPlate', self.tile_size, self.scaled_location(obj.location))
+                return
         if any([isinstance(c, Plate) for c in obj.contents]): 
             self.draw('Plate', self.holding_size, self.holding_location(obj.location))
             if len(obj.contents) > 1:
@@ -120,9 +168,49 @@ class Game:
         else:
             self.draw(obj.full_name, self.holding_size, self.holding_location(obj.location))
 
+    def get_plate_location(self):
+        objs = []
+        for o_list in self.world.objects.values():
+            for o in o_list:
+                if isinstance(o, GridSquare):
+                    pass
+                elif o.is_held == False:
+                    objs.append(o)
+        
+        # Draw objects not held by agents
+        for o in objs:
+            if any([isinstance(c, Plate) for c in o.contents]):
+                Game.plate_location.append(o.location)
+
+    
+    def get_all_food_plate_location(self):
+        objs = []
+        alphabetClassPair = [(Fish, 'f'), (FriedChicken, 'k'), (BurgerMeat, 'm'),
+                         (PizzaDough, 'P'), (Cheese, 'c'), (Bread, 'b'), (Onion, 'o'),
+                         (Lettuce, 'l'), (Tomato, 't'), (Plate, 'p')]
+        for o_list in self.world.objects.values():
+            for o in o_list:
+                if isinstance(o, GridSquare):
+                    pass
+                elif o.is_held == False:
+                    objs.append(o)
+        
+        for o in objs:
+            for i in range(len(o.contents)):
+                for j in range(len(alphabetClassPair)):
+                    if type(o.contents[i]) == alphabetClassPair[j][0]:
+                        Game.food_locations.append((alphabetClassPair[j][1], o.location))
+        
+
     def draw_object(self, obj):
         if obj is None: return
-        if any([isinstance(c, Plate) for c in obj.contents]): 
+
+        for i in obj.contents:
+            if (isinstance(i, Plate)) and (i.state_index == 0):
+                self.draw('DirtyPlate', self.tile_size, self.scaled_location(obj.location))
+                return 
+        
+        if any([isinstance(c, Plate) for c in obj.contents]):
             self.draw('Plate', self.tile_size, self.scaled_location(obj.location))
             if len(obj.contents) > 1:
                 plate = obj.unmerge('Plate')

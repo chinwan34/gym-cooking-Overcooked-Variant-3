@@ -4,19 +4,22 @@ from delegation_planner.utils import SubtaskAllocDistribution
 from navigation_planner.utils import get_subtask_obj, get_subtask_action_obj, get_single_actions
 from utils.interact import interact
 from utils.utils import agent_settings
+from recipe_planner.utils import Merge
 
 from collections import defaultdict, namedtuple
 from itertools import permutations, product, combinations
 import scipy as sp
 import numpy as np
 import copy
+import random
+from operator import itemgetter
 
 SubtaskAllocation = namedtuple("SubtaskAllocation", "subtask subtask_agent_names")
 
 
 class BayesianDelegator(Delegator):
 
-    def __init__(self, agent_name, all_agent_names,
+    def __init__(self, agent_name, all_agent_names, all_agent_role_names,
             model_type, planner, none_action_prob):
         """Initializing Bayesian Delegator for agent_name.
 
@@ -32,6 +35,7 @@ class BayesianDelegator(Delegator):
         self.name = 'Bayesian Delegator'
         self.agent_name = agent_name
         self.all_agent_names = all_agent_names
+        self.all_agent_role_names = all_agent_role_names
         self.probs = None
         self.model_type = model_type
         self.priors = 'uniform' if model_type == 'up' else 'spatial'
@@ -71,7 +75,7 @@ class BayesianDelegator(Delegator):
         elif self.model_type == "dc":
             probs = self.add_dc_subtasks()
         else:
-            probs = self.add_subtasks()
+            probs = self.add_subtasks_alter()
         return probs
 
     def subtask_alloc_is_doable(self, env, subtask, subtask_agent_names):
@@ -130,6 +134,8 @@ class BayesianDelegator(Delegator):
             # Remove all Nones (at least 1 agent must be doing something).
             if all([t.subtask is None for t in subtask_alloc]) and len(subtask_alloc) > 1:
                 subtask_alloc_probs.delete(subtask_alloc)
+        
+        print("After pruning", subtask_alloc_probs)
 
         return subtask_alloc_probs
 
@@ -142,6 +148,7 @@ class BayesianDelegator(Delegator):
         probs = self.prune_subtask_allocs(
                 observation=obs, subtask_alloc_probs=probs)
         probs.normalize()
+
 
         if priors_type == 'spatial':
             self.probs = self.get_spatial_priors(obs, probs)
@@ -176,13 +183,13 @@ class BayesianDelegator(Delegator):
         # A dictionary mapping agent name to a planner.
         # The planner is based on THIS agent's planner because agents are decentralized.
         planners = {}
-        for other_agent_name in self.all_agent_names:
+        for (other_agent_name, other_role_name) in self.all_agent_role_names:
             # Skip over myself.
             if other_agent_name != self.agent_name:
                 # Get most likely subtask and subtask agents for other agent
                 # based on my beliefs.
                 subtask, subtask_agent_names = self.select_subtask(
-                        agent_name=other_agent_name)
+                        agent_name=other_agent_name, role=other_role_name)
 
                 if subtask is None:
                     # Using cooperative backup_subtask for this agent's None subtask.
@@ -333,6 +340,111 @@ class BayesianDelegator(Delegator):
                     other_subtask_allocs.append(new_subtask_alloc)
             return other_subtask_allocs
 
+    def get_other_subtask_allocations_alter(self, remaining_agents_roles, remaining_subtasks, base_subtask_alloc):
+        """Return a list of subtask allocations to be added onto `subtask_allocs`.
+
+        Each combination should be built off of the `base_subtask_alloc`.
+        Add subtasks for all other agents and all other recipe subtasks NOT in
+        the ignore set.
+
+        e.g. base_subtask_combo=[
+            SubtaskAllocation(subtask=(Chop(T)),
+            subtask_agent_names(agent-1, agent-2))]
+        To be added on: [
+            SubtaskAllocation(subtask=(Chop(L)),
+            subtask_agent_names(agent-3,))]
+        Note the different subtask and the different agent.
+        """
+        other_subtask_allocs = []
+        if not remaining_agents_roles:
+            return [base_subtask_alloc]
+
+        # This case is hit if we have more agents than subtasks.
+        if not remaining_subtasks:
+            for agent in remaining_agents_roles:
+                new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=None, subtask_agent_names=(agent[0]))]
+                other_subtask_allocs.append(new_subtask_alloc)
+            print("more agents", other_subtask_allocs)
+            return other_subtask_allocs
+
+        # Otherwise assign remaining agents to remaining subtasks.
+        # If only 1 agent left, assign to all remaining subtasks.
+        if len(remaining_agents_roles) == 1:
+            for t in remaining_subtasks:
+                if type(t) in remaining_agents_roles[0][1].probableActions:
+                    new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=t, subtask_agent_names=(remaining_agents_roles[0][0]))]
+                    other_subtask_allocs.append(new_subtask_alloc)
+            return other_subtask_allocs
+        # If >1 agent remaining, create cooperative and divide & conquer
+        # subtask allocations.
+        else:
+            # Cooperative subtasks (same subtask assigned to remaining agents).
+            for t in remaining_subtasks:
+                if all(type(t) in roleUsed[1].probableActions for roleUsed in remaining_agents_roles) or t == None:
+                    agentNamesToPut = [first_agent[0] for first_agent in remaining_agents_roles]
+                    new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=t, subtask_agent_names=tuple(agentNamesToPut))]
+                    other_subtask_allocs.append(new_subtask_alloc)
+            # Divide and Conquer subtasks (different subtask assigned to remaining agents).
+            if len(remaining_subtasks) > 1:
+                for ts in permutations(remaining_subtasks, 2):
+                    current_subtask_alloc = []
+                    listToUse = []
+                    entered = 0
+                    secondCan0 = False
+                    firstCan1 = True
+                    firstCan0 = False
+                    if type(ts[0]) in remaining_agents_roles[0][1].probableActions or ts[0] == None:
+                        listToUse.append(remaining_agents_roles[0][0])
+                        task1 = SubtaskAllocation(subtask=ts[0], subtask_agent_names=tuple(listToUse))
+                        current_subtask_alloc.append(task1)
+                        entered += 1
+                        listToUse.clear()
+
+                        firstCan0 = True
+
+                        if type(ts[0]) in remaining_agents_roles[1][1].probableActions or ts[0] == None:
+                            secondCan0 = True
+
+                    else:
+                        if type(ts[0]) in remaining_agents_roles[1][1].probableActions or ts[0] == None:
+                            listToUse.append(remaining_agents_roles[1][0])
+                            task1 = SubtaskAllocation(subtask=ts[0], subtask_agent_names=tuple(listToUse))
+                            current_subtask_alloc.append(task1)                         
+                            secondCan0 = True
+                            listToUse.clear()
+                            
+                    if (type(ts[1]) in remaining_agents_roles[1][1].probableActions or ts[1] == None):
+                        if firstCan0 == False and secondCan0 == True:
+                            if (type(ts[1]) in remaining_agents_roles[0][1].probableActions or ts[1] == None) and entered == 0:
+                                listToUse.append(remaining_agents_roles[0][0])
+                                task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
+                                current_subtask_alloc.append(task2)
+                                listToUse.clear()
+                        else:
+                            listToUse.append(remaining_agents_roles[1][0])
+                            task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
+                            current_subtask_alloc.append(task2)
+                            listToUse.clear()
+                    else:
+                        if (type(ts[1]) in remaining_agents_roles[0][1].probableActions or ts[1] == None) and entered == 0:
+                            listToUse.append(remaining_agents_roles[0][0])
+                            task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
+                            current_subtask_alloc.append(task2)
+                            listToUse.clear()
+                        else:
+                            firstCan1 = False    
+                        if secondCan0 == True and firstCan1 == True:
+                            if task1 is not None:
+                                listToUse.append(remaining_agents_roles[1][0])
+                                current_subtask_alloc.remove(task1)
+                                task1 = SubtaskAllocation(subtask=ts[0], subtask_agent_names=tuple(listToUse))
+                                current_subtask_alloc.append(task1)
+                                listToUse.clear()
+
+                    new_subtask_alloc = base_subtask_alloc + current_subtask_alloc
+                    other_subtask_allocs.append(new_subtask_alloc)
+            return other_subtask_allocs
+
     def add_subtasks(self):
         """Return the entire distribution of subtask allocations."""
         subtask_allocs = []
@@ -358,9 +470,11 @@ class BayesianDelegator(Delegator):
                             remaining_agents=remaining_agents,
                             remaining_subtasks=remaining_subtasks,
                             base_subtask_alloc=subtask_alloc)
+                
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
+                        print("Current actions", ts)
                         subtask_alloc = [
                                 SubtaskAllocation(subtask=ts[0], subtask_agent_names=(first_agents[0],)),
                                 SubtaskAllocation(subtask=ts[1], subtask_agent_names=(first_agents[1],)),]
@@ -371,6 +485,138 @@ class BayesianDelegator(Delegator):
                                 remaining_subtasks=remaining_subtasks,
                                 base_subtask_alloc=subtask_alloc)
         return SubtaskAllocDistribution(subtask_allocs)
+
+    def add_subtasks_alter(self):
+        """Return the entire distribution of subtask allocations."""
+        subtask_allocs = []
+
+        subtasks = self.incomplete_subtasks
+        # Just one agent: Assign itself to all subtasks.
+        if len(self.all_agent_names) == 1:
+            for t in subtasks:
+                if type(t) in self.all_agent_role_names[0][1].probableActions:
+                    subtask_alloc = [SubtaskAllocation(subtask=t, subtask_agent_names=tuple(self.all_agent_names))]
+                    subtask_allocs.append(subtask_alloc)
+        else:
+            for first_agents in combinations(self.all_agent_role_names, 2):
+                # Temporarily add Nones, to allow agents to be allocated no subtask.
+                # Later, we filter out allocations where all agents are assigned to None.
+                subtasks_temp = subtasks + [None for _ in range(len(self.all_agent_names) - 1)]
+                # Cooperative subtasks (same subtask assigned to agents).
+                for t in subtasks_temp:
+                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None or type(t) == Merge:
+                        agentNamesToPut = [first_agent[0] for first_agent in first_agents]
+                        subtask_alloc = [SubtaskAllocation(subtask=t, subtask_agent_names=tuple(agentNamesToPut))]
+                        remaining_agents = sorted(list(set(self.all_agent_role_names) - set(first_agents)))
+                        remaining_subtasks = list(set(subtasks_temp) - set([t]))
+                    else:
+                        subtask_alloc = []
+                        remaining_agents = sorted(list(set(self.all_agent_role_names)))
+                        remaining_subtasks = list(set(subtasks_temp))
+                    # Need to deal with get_other_subtask_allocations
+                    subtask_allocs += self.get_other_subtask_allocations_alter(
+                            remaining_agents_roles=remaining_agents,
+                            remaining_subtasks=remaining_subtasks,
+                            base_subtask_alloc=subtask_alloc)
+            
+                # Divide and Conquer subtasks (different subtask assigned to remaining agents).
+                if len(subtasks_temp) > 1:
+                    for ts in permutations(subtasks_temp, 2):
+                        print("Allowed actions", ts)
+                        listToUse = []
+                        agentToDelete = []
+                        subtask_alloc = []
+                        tsToRemove = []
+                        entered = 0
+                        secondCan0 = False
+                        firstCan1 = True
+                        firstCan0 = False
+                        if type(ts[0]) in first_agents[0][1].probableActions or ts[0] == None:
+                            listToUse.append(first_agents[0][0])
+                            task1 = SubtaskAllocation(subtask=ts[0], subtask_agent_names=tuple(listToUse))
+                            subtask_alloc.append(task1)
+                            agentToDelete.append(first_agents[0])
+                            tsToRemove.append(ts[0])
+                            entered += 1
+                            listToUse.clear()
+
+                            firstCan0 = True
+
+                            if type(ts[0]) in first_agents[1][1].probableActions or ts[0] == None:
+                                secondCan0 = True
+
+                        else:
+                            if type(ts[0]) in first_agents[1][1].probableActions or ts[0] == None:
+                                listToUse.append(first_agents[1][0])
+                                task1 = SubtaskAllocation(subtask=ts[0], subtask_agent_names=tuple(listToUse))
+                                subtask_alloc.append(task1)
+                                agentToDelete.append(first_agents[1])
+                                tsToRemove.append(ts[0])
+                                secondCan0 = True
+                                listToUse.clear()
+                              
+                        if (type(ts[1]) in first_agents[1][1].probableActions or ts[1] == None):
+                            if firstCan0 == False and secondCan0 == True:
+                                if type(ts[1]) in first_agents[0][1].probableActions or ts[1] == None  and entered == 0:
+                                    listToUse.append(first_agents[0][0])
+                                    task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
+                                    subtask_alloc.append(task2)
+                                    agentToDelete.append(first_agents[0])
+                                    tsToRemove.append(ts[1])
+                                    listToUse.clear()
+                            else:
+                                listToUse.append(first_agents[1][0])
+                                task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
+                                subtask_alloc.append(task2)
+                                agentToDelete.append(first_agents[1])
+                                tsToRemove.append(ts[1])
+                                listToUse.clear()
+                        else:
+                            if type(ts[1]) in first_agents[0][1].probableActions or ts[1] == None  and entered == 0:
+                                listToUse.append(first_agents[0][0])
+                                task2 = SubtaskAllocation(subtask=ts[1], subtask_agent_names=tuple(listToUse))
+                                subtask_alloc.append(task2)
+                                agentToDelete.append(first_agents[0])
+                                tsToRemove.append(ts[1])
+                                listToUse.clear()
+                            else:
+                                firstCan1 = False    
+                            if secondCan0 == True and firstCan1 == True:
+                                if task1 is not None:
+                                    subtask_alloc.remove(task1)
+                                    listToUse.append(first_agents[1][0])
+                                    task1 = SubtaskAllocation(subtask=ts[0], subtask_agent_names=tuple(listToUse))
+                                    subtask_alloc.append(task1)
+                                    agentToDelete.remove(first_agents[0])
+                                    agentToDelete.append(first_agents[1])
+                                    listToUse.clear()
+
+                        newUnduplicatedList = []
+                        for agent in agentToDelete:
+                            if agent not in newUnduplicatedList:
+                                newUnduplicatedList.append(agent)
+
+                        newTsToRemove = []
+                        for ts in tsToRemove:
+                            if ts not in newTsToRemove:
+                                newTsToRemove.append(ts)
+
+                        remaining_agents = sorted(list(set(self.all_agent_role_names) - set(newUnduplicatedList)))
+                        remaining_subtasks = list(set(subtasks_temp) - set(newTsToRemove))
+                        subtask_allocs += self.get_other_subtask_allocations_alter(
+                                remaining_agents_roles=remaining_agents,
+                                remaining_subtasks=remaining_subtasks,
+                                base_subtask_alloc=subtask_alloc)
+            finalReturn = []
+            for subtaskAlloc in subtask_allocs:
+                if subtaskAlloc not in finalReturn:
+                    if len(subtaskAlloc) == 1 and len(subtaskAlloc[0].subtask_agent_names) != 2:
+                        pass
+                    else:
+                        finalReturn.append(subtaskAlloc)
+        # print("subtask_allocs", SubtaskAllocDistribution(subtask_allocs))
+        # print("final return", SubtaskAllocDistribution(finalReturn))
+        return SubtaskAllocDistribution(finalReturn)
 
     def add_greedy_subtasks(self):
         """Return the entire distribution of greedy subtask allocations.
@@ -398,18 +644,60 @@ class BayesianDelegator(Delegator):
 
         subtasks = self.incomplete_subtasks + [None for _ in range(len(self.all_agent_names) - 1)]
         for p in permutations(subtasks, len(self.all_agent_names)):
-            subtask_alloc = [SubtaskAllocation(subtask=p[i], subtask_agent_names=(self.all_agent_names[i],)) for i in range(len(self.all_agent_names))]
-            subtask_allocs.append(subtask_alloc)
+                subtask_alloc = [SubtaskAllocation(subtask=p[i], subtask_agent_names=(self.all_agent_names[i],)) for i in range(len(self.all_agent_names))]
+                subtask_allocs.append(subtask_alloc)
+
+        return SubtaskAllocDistribution(subtask_allocs)
+    
+    def add_dc_subtasks_alter(self):
+        """Return the entire distribution of divide & conquer subtask allocations.
+        i.e. no subtask is shared between two agents.
+
+        If there are no subtasks, just make an empty distribution and return."""
+        subtask_allocs = []
+
+        subtasks = self.incomplete_subtasks + [None for _ in range(len(self.all_agent_names) - 1)]
+        for p in permutations(subtasks, len(self.all_agent_role_names)):
+                for i in range(len(self.all_agent_names)):
+                    if (p[i] in self.all_agent_role_names[i][1].probableActions):
+                        subtask_alloc = SubtaskAllocation(subtask=p[i], subtask_agent_names=(self.all_agent_role_names[i][0],))
+                        subtask_allocs.append(subtask_alloc)
+
         return SubtaskAllocDistribution(subtask_allocs)
 
-    def select_subtask(self, agent_name):
+
+    def check_role_responsibilities(self, role, subTask):
+        if type(subTask) not in role.probableActions:
+            return False
+        return True
+    
+    def select_subtask(self, agent_name, role):
         """Return subtask and subtask_agent_names for agent with agent_name
         with max. probability."""
         max_subtask_alloc = self.probs.get_max()
         if max_subtask_alloc is not None:
             for t in max_subtask_alloc:
                 if agent_name in t.subtask_agent_names:
-                    return t.subtask, t.subtask_agent_names
+                        return t.subtask, t.subtask_agent_names
+        return None, agent_name
+    
+    def select_subtask_alter(self, agent_name, role):
+        """Return subtask and subtask_agent_names for agent with agent_name
+        with max. probability."""
+        max_subtask_allocs = []
+        usableProbabilitiesAndActions = self.probs.get_related_probs(agent_name, role)
+
+        if len(usableProbabilitiesAndActions) > 0:
+            max_prob = max(usableProbabilitiesAndActions, key=itemgetter(1))
+            for (subtaskObject, p) in usableProbabilitiesAndActions:
+                if p == max_prob[1]:
+                    max_subtask_allocs.append(subtaskObject)
+            max_subtask_alloc = random.choice(max_subtask_allocs)
+        else:
+            max_subtask_alloc = None
+        if max_subtask_alloc is not None:
+            if agent_name in max_subtask_alloc.subtask_agent_names:
+                return max_subtask_alloc.subtask, max_subtask_alloc.subtask_agent_names
         return None, agent_name
 
     def ensure_at_least_one_subtask(self):
