@@ -11,7 +11,7 @@ import copy
 class STRIPSWorld:
     def __init__(self, world, recipes):
         self.initial = recipe.STRIPSState()
-        print("STRIPSWrold", recipes)
+        # print("STRIPSWrold", recipes)
         self.recipes = recipes
         self.numberOfPlates = 0
 
@@ -54,10 +54,7 @@ class STRIPSWorld:
                 # for each action, check whether from this state
                 for a in all_actions:
                     if a.is_valid_in(state):
-                        print(state)
-                        print(a)
                         next_state = a.get_next_from(state, self.numberOfPlates)
-                        print(next_state)
                         for p in next_state.predicates:
                             # print(next_state)
                             new_preds.add(str(p))

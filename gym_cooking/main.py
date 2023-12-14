@@ -111,7 +111,6 @@ def initialize_agents(arglist):
 
                 roleList = findSuitableRoles(actionLeft, arglist.num_agents)
                 if (finished == False):
-                    print("I got here")
                     loc = line.split(' ')
                     real_agent = RealAgent(
                         arglist=arglist,
@@ -144,8 +143,6 @@ def main_loop(arglist):
         for agent in real_agents:
             action = agent.select_action(obs=obs)
             action_dict[agent.name] = action
-        
-        print("After action")
 
         obs, reward, done, info = env.step(action_dict=action_dict)
 
