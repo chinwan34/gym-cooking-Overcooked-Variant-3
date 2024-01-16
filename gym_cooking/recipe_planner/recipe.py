@@ -169,7 +169,6 @@ class FishAndChicken(Recipe):
         self.add_goal()
         self.add_merge_actions()
         self.add_uncleaned_plates_issue()
-        print(self.actions)
     
     def add_merge_actions(self):
          for i in range(2, len(self.contents)+1):

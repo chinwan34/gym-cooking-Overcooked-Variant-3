@@ -334,7 +334,8 @@ class OvercookedEnvironment(gym.Env):
 
         # For Merge operator on Chop subtasks, we look at objects that can be
         # chopped and the cutting board objects.
-        if isinstance(subtask, recipe.Chop):
+        if isinstance(subtask, recipe.Chop) or isinstance(subtask, recipe.Clean) or \
+            isinstance(subtask, recipe.Fry) or isinstance(subtask, recipe.Cook) or isinstance(subtask, recipe.Bake):
             # A: Object that can be chopped.
             A_locs = self.world.get_object_locs(obj=start_obj, is_held=False) + list(map(lambda a: a.location,\
                 list(filter(lambda a: a.name in subtask_agent_names and a.holding == start_obj, self.sim_agents))))

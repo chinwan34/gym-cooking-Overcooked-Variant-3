@@ -137,17 +137,17 @@ def get_obj(obj_string, type_, state, location=(None, None)):
     elif type_ == "is_object":
         if "-" in obj_string:
             obj_strs = obj_string.split("-")
-            objects = [get_obj(obj_string=s,
-                type_="is_object", state=FoodState.FRESH) for s in obj_strs]
-
             # objects = [get_obj(obj_string=s,
-            #       type_="is_object", state=StringToObject.get(s)().state_seq[0]) for s in obj_strs]
+            #     type_="is_object", state=FoodState.FRESH) for s in obj_strs]
+
+            objects = [get_obj(obj_string=s,
+                  type_="is_object", state=StringToObject.get(s)().state_seq[0]) for s in obj_strs]
             # getting into right food env
             for i, s in enumerate(obj_strs):
                 if s == "Plate":
-                    # objects[i] = get_obj(obj_string=s,
-                    #     type_="is_object",
-                    #     state=StringToObject.get("Plate")().state_seq[1])
+                    objects[i] = get_obj(obj_string=s,
+                        type_="is_object",
+                        state=StringToObject.get("Plate")().state_seq[1])
                     continue
                 objects[i] = get_obj(obj_string=s,
                         type_="is_object",
@@ -160,7 +160,10 @@ def get_obj(obj_string, type_, state, location=(None, None)):
             return Object(location, Plate())
         elif obj_string in StringToObject:
             obj = StringToObject[obj_string]()
-            obj.set_state(state)
+            if state in obj.state_seq:
+                obj.set_state(state)
+            else: 
+                obj.set_state(obj.state_seq[0])
             return Object(location, obj)
         else:
             raise NotImplementedError("Type {} is not recognized".format(type_))
@@ -226,7 +229,6 @@ def get_subtask_obj(subtask):
                 type_="is_object", state=FoodState.FRESH)
         obj2 = get_obj(obj_string=subtask.args[1],
                 type_="is_object", state=FoodState.FRESH)
-        print(subtask.args)
         # obj1 = get_obj(obj_string=subtask.args[0],
         #         type_="is_object", state=StringToObject.get(subtask.args[0])().state_seq[0])
         # obj2 = get_obj(obj_string=subtask.args[1],
