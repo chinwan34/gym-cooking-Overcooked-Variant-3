@@ -93,9 +93,12 @@ class RealAgent:
             self.setup_subtasks(env=obs)
 
         # Select subtask based on Bayesian Delegation.
+        print("GO IN UPDATE SUBTASKS")
         self.update_subtasks(env=obs)
+        print("GOT THROUGH UPDATE SUBTASKS")
         self.new_subtask, self.new_subtask_agent_names = self.delegator.select_subtask(
                 agent_name=self.name, role=self.role)
+        print("SELECTED SUBTASK TO WORK WITH")
         self.plan(copy.copy(obs))
         return self.action
 
@@ -157,10 +160,12 @@ class RealAgent:
                 or (self.delegator.should_reset_priors(obs=copy.copy(env),
                             incomplete_subtasks=self.incomplete_subtasks))):
             self.reset_subtasks()
+            print("GO IN SET PRIORS")
             self.delegator.set_priors(
                     obs=copy.copy(env),
                     incomplete_subtasks=self.incomplete_subtasks,
                     priors_type=self.priors)
+            print("SET PRIORS COMPLETED")
         else:
             if self.subtask is None:
                 self.delegator.set_priors(
@@ -168,6 +173,7 @@ class RealAgent:
                     incomplete_subtasks=self.incomplete_subtasks,
                     priors_type=self.priors)
             else:
+                print("GO IN BAYES UPDATE")
                 self.delegator.bayes_update(
                         obs_tm1=copy.copy(env.obs_tm1),
                         actions_tm1=env.agent_actions,
@@ -221,6 +227,8 @@ class RealAgent:
                     env=env, subtask=self.new_subtask,
                     subtask_agent_names=self.new_subtask_agent_names,
                     other_agent_planners=other_agent_planners)
+        
+            print("Got through ALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
             # If joint subtask, pick your part of the simulated joint plan.
             if self.name not in self.new_subtask_agent_names and self.planner.is_joint:

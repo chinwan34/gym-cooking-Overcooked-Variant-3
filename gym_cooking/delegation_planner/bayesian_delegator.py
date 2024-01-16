@@ -106,12 +106,16 @@ class BayesianDelegator(Delegator):
         (subtask x subtask_agent_names)."""
         if subtask is None:
             return 0
+        print("GO IN GET_NEXT ACTION for lower bound")
+        print("subtask name", subtask)
+        print("subtask agents", subtask_agent_names)
         _ = self.planner.get_next_action(
                 env=obs,
                 subtask=subtask,
                 subtask_agent_names=subtask_agent_names,
                 other_agent_planners={})
         value = self.planner.v_l[(self.planner.cur_state.get_repr(), subtask)]
+        print("COMPLETED GET LOWER BOUND FOR SUBTASK ALLOC")
         return value
 
     def prune_subtask_allocs(self, observation, subtask_alloc_probs):
@@ -135,7 +139,7 @@ class BayesianDelegator(Delegator):
             if all([t.subtask is None for t in subtask_alloc]) and len(subtask_alloc) > 1:
                 subtask_alloc_probs.delete(subtask_alloc)
         
-        print("After pruning!!!!!!!!!!!!!!!!!!!!!!!!!!", subtask_alloc_probs)
+        # print("After pruning!!!!!!!!!!!!!!!!!!!!!!!!!!", subtask_alloc_probs)
 
         return subtask_alloc_probs
 
@@ -148,14 +152,16 @@ class BayesianDelegator(Delegator):
         probs = self.prune_subtask_allocs(
                 observation=obs, subtask_alloc_probs=probs)
         probs.normalize()
+        print(probs)
 
 
         if priors_type == 'spatial':
+            print("GO IN SPATIAL PRIORS")
             self.probs = self.get_spatial_priors(obs, probs)
         elif priors_type == 'uniform':
             # Do nothing because probs already initialized to be uniform.
             self.probs = probs
-
+        print("SET PRIORS FINAL STEPS")
         self.ensure_at_least_one_subtask()
         self.probs.normalize()
 
@@ -163,11 +169,15 @@ class BayesianDelegator(Delegator):
     def get_spatial_priors(self, obs, some_probs):
         """Setting prior probabilities w.r.t spatial metrics."""
         # Weight inversely by distance.
+        counterHey = 0
         for subtask_alloc in some_probs.enumerate_subtask_allocs():
+            counterHey+=1
+            print("{}/9 completed".format(counterHey))
             total_weight = 0
             for t in subtask_alloc:
                 if t.subtask is not None:
                     # Calculate prior with this agent's planner.
+                    print("GO IN GET_LOWER_BOUND_FOR_SUBTASK_ALLOC")
                     total_weight += 1.0 / float(self.get_lower_bound_for_subtask_alloc(
                         obs=copy.copy(obs),
                         subtask=t.subtask,
@@ -176,6 +186,7 @@ class BayesianDelegator(Delegator):
             some_probs.update(
                     subtask_alloc=subtask_alloc,
                     factor=len(t)**2. * total_weight)
+        print("COMPLETEd GET SPATIAL PRIORs")
         return some_probs
 
     def get_other_agent_planners(self, obs, backup_subtask):
@@ -362,6 +373,8 @@ class BayesianDelegator(Delegator):
         # This case is hit if we have more agents than subtasks.
         if not remaining_subtasks:
             for agent in remaining_agents_roles:
+                # inputForPart2 = tuple(agent[0])
+                # print(inputForPart2)
                 new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=None, subtask_agent_names=(agent[0]))]
                 other_subtask_allocs.append(new_subtask_alloc)
             return other_subtask_allocs
@@ -371,7 +384,7 @@ class BayesianDelegator(Delegator):
         if len(remaining_agents_roles) == 1:
             for t in remaining_subtasks:
                 if type(t) in remaining_agents_roles[0][1].probableActions:
-                    new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=t, subtask_agent_names=(remaining_agents_roles[0][0]))]
+                    new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=t, subtask_agent_names=(remaining_agents_roles[0][0],))]
                     other_subtask_allocs.append(new_subtask_alloc)
             return other_subtask_allocs
         # If >1 agent remaining, create cooperative and divide & conquer
