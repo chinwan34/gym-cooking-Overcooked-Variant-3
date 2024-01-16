@@ -10,15 +10,32 @@ StringToGridSquare = {
         "Tomato"   : Counter,
         "Lettuce"  : Counter,
         "Onion"    : Counter,
+        "BurgerMeat" : Counter,
+        "Bread"    : Counter,
+        "PizzaDough" : Counter,
+        "Cheese"   : Counter,
+        "FriedChicken" : Counter,
+        "Fish"     : Counter,
         "Plate"    : Counter,
         "Cutboard" : Cutboard,
         "Delivery" : Delivery,
+        "Cookingpan" : CookingPan,
+        "PizzaOven" : PizzaOven,
+        "Sink"     : Sink,
+        "Fryer"    : Fryer,
         }
 
 StringToObject = {
         "Tomato"  : Tomato,
         "Lettuce" : Lettuce,
         "Onion"   : Onion,
+        "BurgerMeat" : BurgerMeat,
+        "Bread"    : Bread,
+        "PizzaDough" : PizzaDough,
+        "Cheese"   : Cheese,
+        "Chicken" : FriedChicken,
+        "Fish"     : Fish,
+        "Plate"    : Plate,
         }
 
 
@@ -120,12 +137,17 @@ def get_obj(obj_string, type_, state, location=(None, None)):
     elif type_ == "is_object":
         if "-" in obj_string:
             obj_strs = obj_string.split("-")
-            # just getting objects
             objects = [get_obj(obj_string=s,
                 type_="is_object", state=FoodState.FRESH) for s in obj_strs]
+
+            # objects = [get_obj(obj_string=s,
+            #       type_="is_object", state=StringToObject.get(s)().state_seq[0]) for s in obj_strs]
             # getting into right food env
             for i, s in enumerate(obj_strs):
                 if s == "Plate":
+                    # objects[i] = get_obj(obj_string=s,
+                    #     type_="is_object",
+                    #     state=StringToObject.get("Plate")().state_seq[1])
                     continue
                 objects[i] = get_obj(obj_string=s,
                         type_="is_object",
@@ -148,6 +170,14 @@ def get_subtask_action_obj(subtask):
         obj = get_obj(obj_string=subtask.args[0], type_="is_supply", state=None)
     elif isinstance(subtask, recipe.Chop):
         obj = get_obj(obj_string="Cutboard", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Fry):
+        obj = get_obj(obj_string="Fryer", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Cook):
+        obj = get_obj(obj_string="CookingPan", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Bake):
+        obj = get_obj(obj_string="PizzaOven", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Clean):
+        obj = get_obj(obj_string="Sink", type_="is_supply", state=None)
     elif isinstance(subtask, recipe.Deliver):
         obj = get_obj(obj_string="Delivery", type_="is_supply", state=None)
     elif isinstance(subtask, recipe.Merge):
@@ -165,6 +195,30 @@ def get_subtask_obj(subtask):
                 type_="is_object", state=FoodState.FRESH)
         goal_obj = get_obj(obj_string=subtask.args[0],
                 type_="is_object", state=FoodState.CHOPPED)
+    
+    elif isinstance(subtask, recipe.Clean):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNCLEANED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.FRESH)
+    
+    elif isinstance(subtask, recipe.Fry):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNFRIED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.COOKED) 
+    
+    elif isinstance(subtask, recipe.Cook):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNCOOKED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.COOKED) 
+    
+    elif isinstance(subtask, recipe.Bake):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNBAKED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.COOKED) 
 
     elif isinstance(subtask, recipe.Merge):
         # only need in last state
@@ -172,6 +226,11 @@ def get_subtask_obj(subtask):
                 type_="is_object", state=FoodState.FRESH)
         obj2 = get_obj(obj_string=subtask.args[1],
                 type_="is_object", state=FoodState.FRESH)
+        print(subtask.args)
+        # obj1 = get_obj(obj_string=subtask.args[0],
+        #         type_="is_object", state=StringToObject.get(subtask.args[0])().state_seq[0])
+        # obj2 = get_obj(obj_string=subtask.args[1],
+        #         type_="is_object", state=StringToObject.get(subtask.args[1])().state_seq[0])
         object_list = [obj1, obj2]
         start_obj = [] # initial state before merging
         # expected objects in their last food state

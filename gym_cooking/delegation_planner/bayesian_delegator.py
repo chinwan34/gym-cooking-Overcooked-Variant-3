@@ -135,7 +135,7 @@ class BayesianDelegator(Delegator):
             if all([t.subtask is None for t in subtask_alloc]) and len(subtask_alloc) > 1:
                 subtask_alloc_probs.delete(subtask_alloc)
         
-        print("After pruning", subtask_alloc_probs)
+        print("After pruning!!!!!!!!!!!!!!!!!!!!!!!!!!", subtask_alloc_probs)
 
         return subtask_alloc_probs
 
@@ -364,7 +364,6 @@ class BayesianDelegator(Delegator):
             for agent in remaining_agents_roles:
                 new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=None, subtask_agent_names=(agent[0]))]
                 other_subtask_allocs.append(new_subtask_alloc)
-            print("more agents", other_subtask_allocs)
             return other_subtask_allocs
 
         # Otherwise assign remaining agents to remaining subtasks.
@@ -474,7 +473,6 @@ class BayesianDelegator(Delegator):
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
-                        print("Current actions", ts)
                         subtask_alloc = [
                                 SubtaskAllocation(subtask=ts[0], subtask_agent_names=(first_agents[0],)),
                                 SubtaskAllocation(subtask=ts[1], subtask_agent_names=(first_agents[1],)),]
@@ -522,7 +520,6 @@ class BayesianDelegator(Delegator):
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
-                        print("Allowed actions", ts)
                         listToUse = []
                         agentToDelete = []
                         subtask_alloc = []
