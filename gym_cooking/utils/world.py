@@ -5,6 +5,7 @@ import networkx as nx
 import copy
 import matplotlib.pyplot as plt
 from functools import lru_cache
+from utils.core import *
 
 import recipe_planner.utils as recipe
 from navigation_planner.utils import manhattan_dist
@@ -269,6 +270,17 @@ class World:
         else:
             return list(map(lambda o: o.location, list(filter(lambda o: obj == o,
                 self.objects[obj.name]))))
+    
+    def get_object_locs_plate(self, obj, is_held):
+        if obj.name not in self.objects.keys():
+            return []
+        
+        filtered_objects = list(
+            map(lambda o: o.location, list(filter(lambda o: obj == o and 
+            o.is_held == is_held and len(o.contents) == 1 and isinstance(o.contents[0], Plate) and 
+            o.contents[0].state_index == 0, self.objects[obj.name]))))
+        
+        return filtered_objects
 
     def get_all_object_locs(self, obj):
         return list(set(self.get_object_locs(obj=obj, is_held=True) + self.get_object_locs(obj=obj, is_held=False)))

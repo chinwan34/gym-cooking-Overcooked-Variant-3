@@ -5,6 +5,7 @@ from navigation_planner.utils import get_subtask_obj, get_subtask_action_obj, ge
 from utils.interact import interact
 from utils.utils import agent_settings
 from recipe_planner.utils import Merge
+from utils.core import *
 
 from collections import defaultdict, namedtuple
 from itertools import permutations, product, combinations
@@ -86,7 +87,11 @@ class BayesianDelegator(Delegator):
             return True
         agent_locs = [agent.location for agent in list(filter(lambda a: a.name in subtask_agent_names, env.sim_agents))]
         start_obj, goal_obj = get_subtask_obj(subtask=subtask)
+        if not isinstance(start_obj, list) and len(start_obj.contents) == 1 and isinstance(start_obj.contents[0], Plate):
+            pass
+
         subtask_action_obj = get_subtask_action_obj(subtask=subtask)
+        # print(subtask_action_obj)
         A_locs, B_locs = env.get_AB_locs_given_objs(
                 subtask=subtask,
                 subtask_agent_names=subtask_agent_names,
@@ -169,10 +174,10 @@ class BayesianDelegator(Delegator):
     def get_spatial_priors(self, obs, some_probs):
         """Setting prior probabilities w.r.t spatial metrics."""
         # Weight inversely by distance.
-        counterHey = 0
+        counterHey = -1
         for subtask_alloc in some_probs.enumerate_subtask_allocs():
             counterHey+=1
-            print("{}/9 completed".format(counterHey))
+            print("{}/{} completed".format(counterHey, len(some_probs.enumerate_subtask_allocs())))
             total_weight = 0
             for t in subtask_alloc:
                 if t.subtask is not None:
@@ -515,7 +520,7 @@ class BayesianDelegator(Delegator):
                 subtasks_temp = subtasks + [None for _ in range(len(self.all_agent_names) - 1)]
                 # Cooperative subtasks (same subtask assigned to agents).
                 for t in subtasks_temp:
-                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None or type(t) == Merge:
+                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None:
                         agentNamesToPut = [first_agent[0] for first_agent in first_agents]
                         subtask_alloc = [SubtaskAllocation(subtask=t, subtask_agent_names=tuple(agentNamesToPut))]
                         remaining_agents = sorted(list(set(self.all_agent_role_names) - set(first_agents)))

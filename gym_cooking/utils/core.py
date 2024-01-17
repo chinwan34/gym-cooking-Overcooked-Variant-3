@@ -223,6 +223,7 @@ class AgentCounter(Counter):
         GridSquare.__init__(self,"Agent-Counter", location)
         self.rep = Rep.COUNTER
         self.collidable = True
+        # self.name = "AgentCounter"
     def __eq__(self, other):
         return Counter.__eq__(self, other)
     def __hash__(self):

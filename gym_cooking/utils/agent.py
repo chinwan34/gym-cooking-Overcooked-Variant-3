@@ -98,7 +98,7 @@ class RealAgent:
         print("GOT THROUGH UPDATE SUBTASKS")
         self.new_subtask, self.new_subtask_agent_names = self.delegator.select_subtask(
                 agent_name=self.name, role=self.role)
-        print("SELECTED SUBTASK TO WORK WITH")
+        print("SELECTED SUBTASK TO WORK WITH", self.name)
         self.plan(copy.copy(obs))
         return self.action
 
@@ -200,14 +200,23 @@ class RealAgent:
 
         # If subtask is None, then do nothing.
         if (self.new_subtask is None) or (not self.new_subtask_agent_names):
-            actions = nav_utils.get_single_actions(env=env, agent=self)
-            probs = []
+            # actions = nav_utils.get_single_actions(env=env, agent=self)
+            # probs = []
+            # for a in actions:
+            #     if a == (0, 0):
+            #         probs.append(self.none_action_prob)
+            #     else:
+            #         probs.append((1.0-self.none_action_prob)/(len(actions)-1))
+            # self.action = actions[np.random.choice(len(actions), p=probs)]
+            actions = [(0,1), (0,-1), (1,0), (-1,0)]
+            actionThatWorks = []
             for a in actions:
-                if a == (0, 0):
-                    probs.append(self.none_action_prob)
-                else:
-                    probs.append((1.0-self.none_action_prob)/(len(actions)-1))
-            self.action = actions[np.random.choice(len(actions), p=probs)]
+                nextLoc = env.nextLocationBase(a, self.location)
+                if isinstance(nextLoc, Floor):
+                    actionThatWorks.append(a)
+            if len(actionThatWorks) == 0:
+                actionThatWorks.append((0,0))
+            self.action = random.choice(actionThatWorks)
         # Otherwise, plan accordingly.
         else:
             if self.model_type == 'greedy' or initializing_priors:
@@ -264,6 +273,7 @@ class RealAgent:
         else:
             # Current count of desired objects.
             self.cur_obj_count = len(env.world.get_all_object_locs(obj=self.goal_obj))
+            print("Current goal objects", env.world.get_all_object_locs(obj=self.goal_obj))
             # Goal state is reached when the number of desired objects has increased.
             self.is_subtask_complete = lambda w: len(w.get_all_object_locs(obj=self.goal_obj)) > self.cur_obj_count
 

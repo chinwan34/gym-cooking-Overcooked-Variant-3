@@ -54,11 +54,11 @@ def interact(agent, world):
                 agent.acquire(obj)
                 world.insert(agent.holding)
                 # if playable version, merge onto counter first
-                # if world.arglist.play:
+                if world.arglist.play:
                 #     gs.acquire(agent.holding)
                 #     agent.release()
-                gs.acquire(agent.holding)
-                agent.release()
+                    gs.acquire(agent.holding)
+                    agent.release()
 
 
         # if holding something, empty gridsquare in front --> chop, cook, bake or drop
@@ -67,7 +67,7 @@ def interact(agent, world):
             if not isinstance(gs, Delivery):
                 gs.acquire(obj)
                 agent.release()
-            elif isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play: #and Chop in agent.role.probableActions:
+            if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play: #and Chop in agent.role.probableActions:
                 obj.chop()
             elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play: #and Fry in agent.role.probableActions:
                 obj.fry()

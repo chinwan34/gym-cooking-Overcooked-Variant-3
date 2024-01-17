@@ -96,8 +96,37 @@ def get_single_actions(env, agent):
                 actions.append(t)
     # doing nothing is always possible
     actions.append((0, 0))
-
     return actions
+
+def get_single_actions_alter(env, agent):
+    actions = []
+
+    agent_locs = list(map(lambda a: a.location, env.sim_agents))
+
+    # Check valid movement actions
+    for t in [(0, 1), (0, -1), (-1, 0), (1, 0)]:
+        new_loc = env.world.inbounds(tuple(np.asarray(agent.location) + np.asarray(t)))
+        # Check to make sure not at boundary
+       
+        gs = env.world.get_gridsquare_at(new_loc)
+        # Can move into floors
+        if not gs.collidable:
+            actions.append(t)
+        # Can interact with deliveries
+        elif isinstance(gs, Delivery):
+            actions.append(t)
+        # Can interact with others if at least one of me or gs is holding something, or mergeable
+        elif gs.holding is None and agent.holding is not None:
+            actions.append(t)
+        elif gs.holding is not None and isinstance(gs.holding, Object) and agent.holding is None:
+            actions.append(t)
+        elif gs.holding is not None and isinstance(gs.holding, Object) and\
+            agent.holding is not None and mergeable(agent.holding, gs.holding):
+            actions.append(t)
+    # doing nothing is always possible
+    actions.append((0, 0))
+    return actions
+
 
 def euclidean_dist(A, B):
     return np.linalg.norm(B - A)

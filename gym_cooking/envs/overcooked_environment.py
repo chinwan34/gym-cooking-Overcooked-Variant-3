@@ -334,15 +334,33 @@ class OvercookedEnvironment(gym.Env):
 
         # For Merge operator on Chop subtasks, we look at objects that can be
         # chopped and the cutting board objects.
-        if isinstance(subtask, recipe.Chop) or isinstance(subtask, recipe.Clean) or \
+        if isinstance(subtask, recipe.Chop) or \
             isinstance(subtask, recipe.Fry) or isinstance(subtask, recipe.Cook) or isinstance(subtask, recipe.Bake):
             # A: Object that can be chopped.
             A_locs = self.world.get_object_locs(obj=start_obj, is_held=False) + list(map(lambda a: a.location,\
                 list(filter(lambda a: a.name in subtask_agent_names and a.holding == start_obj, self.sim_agents))))
+            # print(A_locs)
 
             # B: Cutboard objects.
             B_locs = self.world.get_all_object_locs(obj=subtask_action_obj)
 
+        elif isinstance(subtask, recipe.Clean):
+            A_locs = self.world.get_object_locs_plate(obj=start_obj, is_held=False) + list(map(lambda a: a.location,\
+                list(filter(lambda a: a.name in subtask_agent_names and a.holding == start_obj 
+                and len(start_obj.contents) == 1
+                and isinstance(start_obj.contents[0], Plate)
+                and start_obj.contents[0].state_index == 0, self.sim_agents))))
+
+            # B: Cutboard objects.
+            B_locs = self.world.get_all_object_locs(obj=subtask_action_obj)
+            
+            # for diffobject in self.world.get_object_list():
+            #     if isinstance(diffobject, Object) and len(diffobject.contents) == 1 and isinstance(diffobject.contents[0], Plate):
+            #         print(diffobject.contents[0].state_index)
+                    
+                # if isinstance(diffobject, Plate):
+                #     print("Plate state index", diffobject.state_index)
+            
         # For Merge operator on Deliver subtasks, we look at objects that can be
         # delivered and the Delivery object.
         elif isinstance(subtask, recipe.Deliver):
@@ -409,6 +427,9 @@ class OvercookedEnvironment(gym.Env):
                 A_locs=tuple(A_locs),
                 B_locs=tuple(B_locs)) + holding_penalty
 
+    def nextLocationBase(self, agent_action, currentLocation):
+        return self.world.get_gridsquare_at(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))
+
     def is_collision(self, agent1_loc, agent2_loc, agent1_action, agent2_action):
         """Returns whether agents are colliding.
 
@@ -442,6 +463,21 @@ class OvercookedEnvironment(gym.Env):
                 (agent2_loc == agent1_next_loc)):
             execute[0] = False
             execute[1] = False
+        return execute
+    
+    def is_collision_alter(self, agent1_loc, agent2_loc, agent1_action, agent2_action):
+        execute = [True, True]
+        agent1_next_loc = tuple(np.asarray(agent1_loc) + np.asarray(agent1_action))
+        if self.world.get_gridsquare_at(location=agent1_next_loc).collidable:
+            # Revert back because agent collided.
+            agent1_next_loc = agent1_loc
+
+        agent2_next_loc = tuple(np.asarray(agent2_loc) + np.asarray(agent2_action))
+        if self.world.get_gridsquare_at(location=agent2_next_loc).collidable:
+            # Revert back because agent collided.
+            # print(type(self.world.get_gridsquare_at(location=agent2_next_loc)))
+            agent2_next_loc = agent2_loc
+        
         return execute
 
     def check_collisions(self):
