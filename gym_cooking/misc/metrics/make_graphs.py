@@ -14,7 +14,8 @@ import recipe_planner
 recipes = [
         "tomato",
         "tl",
-        "salad"
+        "salad",
+        "chicken",
     ]
 total_num_subtasks = {
         "tomato": 3,
@@ -38,14 +39,16 @@ model_key = {
 maps = [
         "full-divider",
         "open-divider",
-        "partial-divider"
+        "partial-divider",
+        "very-easy",
         ]
 seeds = range(1,10)
 agents = ['agent-1', 'agent-2', 'agent-3', 'agent-4']
 agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "full-divider": {"tomato": 17, "tl": 31, "salad": 21}
+    "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
+    "very-easy": {"chicken": 40}
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},

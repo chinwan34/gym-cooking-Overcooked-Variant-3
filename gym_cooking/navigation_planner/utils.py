@@ -267,19 +267,30 @@ def get_subtask_obj(subtask):
         # expected objects in their last food state
 
         for i, o in enumerate(object_list):
-            if isinstance(o.contents[0], Plate):
-                start_obj.append(copy.copy(o))
-                continue
+            # if isinstance(o.contents[0], Plate):
+            #     start_obj.append(get_obj(obj_string="Plate",
+            #             type_="is_object",
+            #             state=StringToObject.get("Plate")().state_seq[0]))
+            #     continue
+                # start_obj.append(copy.copy(o))
+                # continue
 
             object_list[i] = get_obj(obj_string=subtask.args[i],
                     type_="is_object", state=o.contents[0].state_seq[-1])
             # Must be in the last state before merging
-            start_obj.append(get_obj(obj_string=subtask.args[i],
-                type_="is_object", state=o.contents[0].state_seq[-1]))
+            if isinstance(o.contents[0], Plate):
+                start_obj.append(get_obj(obj_string="Plate",
+                        type_="is_object",
+                        state=StringToObject.get("Plate")().state_seq[0]))
+            else:
+                start_obj.append(get_obj(obj_string=subtask.args[i],
+                    type_="is_object", state=o.contents[0].state_seq[-1]))
 
         # Merging objects
         object_list[0].merge(object_list[1])
         goal_obj = object_list[0]
+        print(goal_obj)
+        print(start_obj)
 
     elif isinstance(subtask, recipe.Deliver):
         start_obj = get_obj(obj_string=subtask.args[0],
