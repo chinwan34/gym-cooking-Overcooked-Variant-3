@@ -214,8 +214,7 @@ class RealAgent:
                 nextLoc = env.nextLocationBase(a, self.location)
                 if isinstance(nextLoc, Floor):
                     actionThatWorks.append(a)
-            if len(actionThatWorks) == 0:
-                actionThatWorks.append((0,0))
+            actionThatWorks.append((0,0))
             self.action = random.choice(actionThatWorks)
         # Otherwise, plan accordingly.
         else:
