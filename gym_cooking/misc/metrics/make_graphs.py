@@ -20,7 +20,8 @@ recipes = [
 total_num_subtasks = {
         "tomato": 3,
         "tl": 6,
-        "salad": 5
+        "salad": 5,
+        "chicken": 7,
     }
 models = [
        "_model1-bd_model2-bd",

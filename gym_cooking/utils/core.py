@@ -180,7 +180,7 @@ class Fryer(GridSquare):
 
 class PizzaOven(GridSquare):
     def __init__(self, location):
-        GridSquare.__init__(self, "Pizzaoven", location)
+        GridSquare.__init__(self, "PizzaOven", location)
         self.rep = Rep.PIZZAOVEN
         self.collidable = True
     def __eq__(self, other):
