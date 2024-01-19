@@ -91,7 +91,6 @@ class BayesianDelegator(Delegator):
             pass
 
         subtask_action_obj = get_subtask_action_obj(subtask=subtask)
-        # print(subtask_action_obj)
         A_locs, B_locs = env.get_AB_locs_given_objs(
                 subtask=subtask,
                 subtask_agent_names=subtask_agent_names,
@@ -157,7 +156,7 @@ class BayesianDelegator(Delegator):
         probs = self.prune_subtask_allocs(
                 observation=obs, subtask_alloc_probs=probs)
         probs.normalize()
-        print(probs)
+        # print(probs)
 
 
         if priors_type == 'spatial':
@@ -178,6 +177,7 @@ class BayesianDelegator(Delegator):
         for subtask_alloc in some_probs.enumerate_subtask_allocs():
             counterHey+=1
             print("{}/{} completed".format(counterHey, len(some_probs.enumerate_subtask_allocs())))
+            
             total_weight = 0
             for t in subtask_alloc:
                 if t.subtask is not None:
@@ -188,7 +188,8 @@ class BayesianDelegator(Delegator):
                         subtask=t.subtask,
                         subtask_agent_names=t.subtask_agent_names))
             # Weight by number of nonzero subtasks.
-            some_probs.update(
+            # WATCH OUT, CHANGED BY AN INDENT
+                some_probs.update(
                     subtask_alloc=subtask_alloc,
                     factor=len(t)**2. * total_weight)
         print("COMPLETEd GET SPATIAL PRIORs")

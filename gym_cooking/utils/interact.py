@@ -53,12 +53,13 @@ def interact(agent, world):
                 world.remove(agent.holding)
                 agent.acquire(obj)
                 world.insert(agent.holding)
+                gs.acquire(agent.holding)
+                agent.release()
                 # if playable version, merge onto counter first
-                if world.arglist.play:
-                #     gs.acquire(agent.holding)
-                #     agent.release()
-                    gs.acquire(agent.holding)
-                    agent.release()
+                # if world.arglist.play:
+                # #     gs.acquire(agent.holding)
+                # #     agent.release()
+                    
 
 
         # if holding something, empty gridsquare in front --> chop, cook, bake or drop

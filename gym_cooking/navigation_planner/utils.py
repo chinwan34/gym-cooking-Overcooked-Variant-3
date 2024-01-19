@@ -289,8 +289,6 @@ def get_subtask_obj(subtask):
         # Merging objects
         object_list[0].merge(object_list[1])
         goal_obj = object_list[0]
-        print(goal_obj)
-        print(start_obj)
 
     elif isinstance(subtask, recipe.Deliver):
         start_obj = get_obj(obj_string=subtask.args[0],
