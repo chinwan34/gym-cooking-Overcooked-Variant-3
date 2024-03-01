@@ -64,6 +64,11 @@ class MergingWaiter(Role):
         self.probableActions = [Get, Merge, Deliver, Clean]
         self.name = "MergingWaiter"
 
+class ChoppingMerger(Role):
+    def __init__(self):
+        self.probableActions = [Get, Chop, Merge]
+        self.name = "ChoppingMerger"
+
 class ChoppingWaiter(Role):
     def __init__(self):
         self.probableActions = [Get, Chop, Deliver, Clean]

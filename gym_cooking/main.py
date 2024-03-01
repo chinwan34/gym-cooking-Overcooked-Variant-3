@@ -85,13 +85,16 @@ def findSuitableRoles(actionsNotSatisfied, num_agents):
         if actionsNotSatisfied.issubset(currentSet):
             return eachCombination
     
-def roleAssignmentAlgorithm(typeUsed):
+def roleAssignmentAlgorithm(typeUsed, num_agents):
     if typeUsed == "extreme":
         return [InvincibleWaiter(), IdlePerson()]
     elif typeUsed == "unbalanced":
         return [ChoppingWaiter(), Deliverer()]
     elif typeUsed == "three":
-        return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
+        if num_agents == 2:
+            return [ChoppingWaiter(), WaiterDeliverer()]
+        elif num_agents == 3:
+            return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
 
 
 def initialize_agents(arglist):
@@ -124,7 +127,7 @@ def initialize_agents(arglist):
                 if not arglist.role or arglist.role == "optimal":
                     roleList = findSuitableRoles(actionLeft, arglist.num_agents)
                 else:
-                    roleList = roleAssignmentAlgorithm(arglist.role)
+                    roleList = roleAssignmentAlgorithm(arglist.role, arglist.num_agents)
                 if (finished == False):
                     loc = line.split(' ')
                     real_agent = RealAgent(

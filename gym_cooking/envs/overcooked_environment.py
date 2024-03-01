@@ -146,7 +146,7 @@ class OvercookedEnvironment(gym.Env):
                     if not self.arglist.role or self.arglist.role == "optimal":
                         roleList = self.findSuitableRoles(actionsNotSatisfied, num_agents)
                     else:
-                        roleList = self.roleAssignmentAlgorithm(self.arglist.role)
+                        roleList = self.roleAssignmentAlgorithm(self.arglist.role, num_agents)
                     if (AgentsDone == False):
                         loc = line.split(' ')
                         sim_agent = SimAgent(
@@ -193,13 +193,16 @@ class OvercookedEnvironment(gym.Env):
             if actionsNotSatisfied.issubset(currentSet):
                 return eachCombination
     
-    def roleAssignmentAlgorithm(self, typeUsed):
+    def roleAssignmentAlgorithm(self, typeUsed, num_agents):
         if typeUsed == "extreme":
             return [InvincibleWaiter(), IdlePerson()]
         elif typeUsed == "unbalanced":
-            return [ChoppingWaiter(), Deliverer()]
+            return [ChoppingMerger(), Deliverer()]
         elif typeUsed == "three":
-            return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
+            if num_agents == 2:
+                return [ChoppingMerger(), ChoppingWaiter()]
+            elif num_agents == 3:
+                return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
 
     def reset(self):
         self.world = World(arglist=self.arglist)

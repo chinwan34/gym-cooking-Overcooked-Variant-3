@@ -37,6 +37,18 @@ model_key = {
     "_model1-dc_model2-dc": "D&C",
     "_model1-greedy_model2-greedy": "Greedy",
 }
+roles = [
+    "role-extreme",
+    "role-optimal",
+    "role-unbalanced",
+    "role-three",
+]
+role_key = {
+    "role-extreme": "extreme",
+    "role-optimal": "optimal",
+    "role-unbalanced": "unbalanced",
+    "role-three": "three",
+}
 maps = [
         "full-divider",
         "open-divider",
