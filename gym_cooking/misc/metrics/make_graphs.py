@@ -42,12 +42,14 @@ roles = [
     "role-optimal",
     "role-unbalanced",
     "role-three",
+    "role-none",
 ]
 role_key = {
     "role-extreme": "extreme",
     "role-optimal": "optimal",
     "role-unbalanced": "unbalanced",
     "role-three": "three",
+    "role-none": "none",
 }
 maps = [
         "full-divider",
@@ -151,12 +153,13 @@ def compute_stats(path_pickles, num_agents):
 def import_data(key, path_pickles, num_agents):
     df = list()
 
-    for recipe, model, map_, seed in itertools.product(recipes, models, maps, seeds):
+    for recipe, model, map_, seed, role in itertools.product(recipes, models, maps, seeds, roles):
         info = {
             "map": map_,
             "seed": seed,
             "recipe": recipe,
-            'model': model_key[model],
+            # 'model': model_key[model],
+            'role': role_key[role],
             "dummy": 0
         }
 
@@ -242,7 +245,8 @@ def get_shuffles(data, recipe):
 
 def plot_data(key, path_save, df, num_agents, legend=False):
     print('generating {} graphs'.format(key))
-    hue_order = [model_key[l] for l in models]
+    # hue_order = [model_key[l] for l in models]
+    hue_order = [role_key[l] for l in roles]
     color_palette = sns.color_palette()
     sns.set_style('ticks')
     sns.set_context('talk', font_scale=1)
@@ -253,6 +257,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             if len(data) == 0:
                 print('empty data on ', (recipe, map_))
                 continue
+            print(data)
 
             plt.figure(figsize=(3,3))
 
@@ -260,7 +265,9 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                 # plot ours last
                 hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
-                ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
+                # ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
+                #     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
+                ax = sns.lineplot(x = 't', y = 'n', hue="role", data=data,
                     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
                 plt.xlabel('Steps')
                 plt.ylim([0, 1]),
@@ -268,7 +275,13 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             else:
                 hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
-                sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order,\
+                # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order,\
+                #                 palette=color_palette, ci=68).set(
+                #     xlabel = "",
+                #     xticks = [],
+                #     ylim = ylims[key],
+                # )
+                sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order,\
                                 palette=color_palette, ci=68).set(
                     xlabel = "",
                     xticks = [],
@@ -298,9 +311,12 @@ def plot_data(key, path_save, df, num_agents, legend=False):
     if arglist.legend:
         plt.figure(figsize=(10,10))
         if key == 'completion':
-            sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+            sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+            # sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
         else:
-            sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
+            # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
+            #     xlabel = "", xticks = [], ylim = [0, 1000])
+            sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
                 xlabel = "", xticks = [], ylim = [0, 1000])
         legend = plt.legend(frameon=False)
         legend_fig = legend.figure

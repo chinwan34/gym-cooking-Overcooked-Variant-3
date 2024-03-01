@@ -26,7 +26,7 @@ def parse_arguments():
     parser.add_argument("--max-num-subtasks", type=int, default=14, help="Max number of subtasks for recipe")
     parser.add_argument("--seed", type=int, default=1, help="Fix pseudorandom seed")
     parser.add_argument("--with-image-obs", action="store_true", default=False, help="Return observations as images (instead of objects)")
-    parser.add_argument("--role", type=str, default=None, help="Role assignment for each play (optimal, unbalanced, extreme, three)")
+    parser.add_argument("--role", type=str, default=None, help="Role assignment for each play (optimal, unbalanced, extreme, three, none)")
 
     # Delegation Planner
     parser.add_argument("--beta", type=float, default=1.3, help="Beta for softmax in Bayesian delegation updates")
@@ -88,6 +88,8 @@ def findSuitableRoles(actionsNotSatisfied, num_agents):
 def roleAssignmentAlgorithm(typeUsed, num_agents):
     if typeUsed == "extreme":
         return [InvincibleWaiter(), IdlePerson()]
+    elif typeUsed == "none":
+        return [InvincibleWaiter(), InvincibleWaiter()]
     elif typeUsed == "unbalanced":
         return [ChoppingWaiter(), Deliverer()]
     elif typeUsed == "three":
