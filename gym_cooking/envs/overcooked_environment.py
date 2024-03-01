@@ -90,6 +90,9 @@ class OvercookedEnvironment(gym.Env):
             model += "_model4-{}".format(self.arglist.model4)
         self.filename += model
 
+        if self.arglist.role is not None:
+            self.filename += "role-{}".format(self.arglist.role)
+
     def load_level(self, level, num_agents):
         x = 0
         y = 0
@@ -139,7 +142,11 @@ class OvercookedEnvironment(gym.Env):
                         actionsNotSatisfied = list(dict.fromkeys(actionsNotSatisfied))
                         actionsNotSatisfied = set(action.name for action in actionsNotSatisfied)
                     
-                    roleList = self.findSuitableRoles(actionsNotSatisfied, num_agents)
+                    roleList = []
+                    if not self.arglist.role or self.arglist.role == "optimal":
+                        roleList = self.findSuitableRoles(actionsNotSatisfied, num_agents)
+                    else:
+                        roleList = self.roleAssignmentAlgorithm(self.arglist.role)
                     if (AgentsDone == False):
                         loc = line.split(' ')
                         sim_agent = SimAgent(
@@ -185,6 +192,14 @@ class OvercookedEnvironment(gym.Env):
 
             if actionsNotSatisfied.issubset(currentSet):
                 return eachCombination
+    
+    def roleAssignmentAlgorithm(self, typeUsed):
+        if typeUsed == "extreme":
+            return [InvincibleWaiter(), IdlePerson()]
+        elif typeUsed == "unbalanced":
+            return [ChoppingWaiter(), Deliverer()]
+        elif typeUsed == "three":
+            return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
 
     def reset(self):
         self.world = World(arglist=self.arglist)

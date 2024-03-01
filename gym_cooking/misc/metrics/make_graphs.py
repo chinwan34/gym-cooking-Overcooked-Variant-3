@@ -49,7 +49,7 @@ agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "very-easy": {"chicken": 40}
+    "very-easy": {"chicken": 40, "salad": 30},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
