@@ -76,7 +76,7 @@ class BayesianDelegator(Delegator):
         elif self.model_type == "dc":
             probs = self.add_dc_subtasks()
         else:
-            probs = self.add_subtasks()
+            probs = self.add_subtasks_alter()
         return probs
 
     def subtask_alloc_is_doable(self, env, subtask, subtask_agent_names):
@@ -87,9 +87,9 @@ class BayesianDelegator(Delegator):
             return True
         agent_locs = [agent.location for agent in list(filter(lambda a: a.name in subtask_agent_names, env.sim_agents))]
         start_obj, goal_obj = get_subtask_obj(subtask=subtask)
-        if not isinstance(start_obj, list) and len(start_obj.contents) == 1 and isinstance(start_obj.contents[0], Plate):
-            pass
-
+        # if not isinstance(start_obj, list) and len(start_obj.contents) == 1 and isinstance(start_obj.contents[0], Plate):
+        #     pass
+        
         subtask_action_obj = get_subtask_action_obj(subtask=subtask)
         A_locs, B_locs = env.get_AB_locs_given_objs(
                 subtask=subtask,
@@ -142,7 +142,7 @@ class BayesianDelegator(Delegator):
             if all([t.subtask is None for t in subtask_alloc]) and len(subtask_alloc) > 1:
                 subtask_alloc_probs.delete(subtask_alloc)
         
-        # print("After pruning!!!!!!!!!!!!!!!!!!!!!!!!!!", subtask_alloc_probs)
+        print("After pruning!!!!!!!!!!!!!!!!!!!!!!!!!!", subtask_alloc_probs)
 
         return subtask_alloc_probs
 

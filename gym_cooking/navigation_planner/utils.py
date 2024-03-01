@@ -263,13 +263,13 @@ def get_subtask_obj(subtask):
         # expected objects in their last food state
 
         for i, o in enumerate(object_list):
-            # if isinstance(o.contents[0], Plate):
+            if isinstance(o.contents[0], Plate):
             #     start_obj.append(get_obj(obj_string="Plate",
             #             type_="is_object",
             #             state=StringToObject.get("Plate")().state_seq[0]))
             #     continue
-                # start_obj.append(copy.copy(o))
-                # continue
+                start_obj.append(copy.copy(o))
+                continue
 
             object_list[i] = get_obj(obj_string=subtask.args[i],
                     type_="is_object", state=o.contents[0].state_seq[-1])
