@@ -69,6 +69,7 @@ def findSuitableRoles(actionsNotSatisfied, num_agents):
         combinationsBasedOnAgents = combinations(listOfRoles2, num_agents)
     elif num_agents == 1:
         combinationsBasedOnAgents = SingleAgentRole
+        return SingleAgentRole
 
     for eachCombination in combinationsBasedOnAgents:
         currentSet = set()
@@ -132,7 +133,6 @@ def main_loop(arglist):
     obs = env.reset()
     # game = GameVisualize(env)
     real_agents = initialize_agents(arglist=arglist)
-
     # Info bag for saving pkl files
     bag = Bag(arglist=arglist, filename=env.filename)
     bag.set_recipe(recipe_subtasks=env.all_subtasks)

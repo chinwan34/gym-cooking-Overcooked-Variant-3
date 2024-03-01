@@ -166,17 +166,17 @@ def get_obj(obj_string, type_, state, location=(None, None)):
     elif type_ == "is_object":
         if "-" in obj_string:
             obj_strs = obj_string.split("-")
-            # objects = [get_obj(obj_string=s,
-            #     type_="is_object", state=FoodState.FRESH) for s in obj_strs]
-
             objects = [get_obj(obj_string=s,
-                  type_="is_object", state=StringToObject.get(s)().state_seq[0]) for s in obj_strs]
+                type_="is_object", state=FoodState.FRESH) for s in obj_strs]
+
+            # objects = [get_obj(obj_string=s,
+            #       type_="is_object", state=StringToObject.get(s)().state_seq[0]) for s in obj_strs]
             # getting into right food env
             for i, s in enumerate(obj_strs):
                 if s == "Plate":
-                    objects[i] = get_obj(obj_string=s,
-                        type_="is_object",
-                        state=StringToObject.get("Plate")().state_seq[1])
+                    # objects[i] = get_obj(obj_string=s,
+                    #     type_="is_object",
+                    #     state=StringToObject.get("Plate")().state_seq[1])
                     continue
                 objects[i] = get_obj(obj_string=s,
                         type_="is_object",
@@ -258,10 +258,6 @@ def get_subtask_obj(subtask):
                 type_="is_object", state=FoodState.FRESH)
         obj2 = get_obj(obj_string=subtask.args[1],
                 type_="is_object", state=FoodState.FRESH)
-        # obj1 = get_obj(obj_string=subtask.args[0],
-        #         type_="is_object", state=StringToObject.get(subtask.args[0])().state_seq[0])
-        # obj2 = get_obj(obj_string=subtask.args[1],
-        #         type_="is_object", state=StringToObject.get(subtask.args[1])().state_seq[0])
         object_list = [obj1, obj2]
         start_obj = [] # initial state before merging
         # expected objects in their last food state
@@ -278,13 +274,13 @@ def get_subtask_obj(subtask):
             object_list[i] = get_obj(obj_string=subtask.args[i],
                     type_="is_object", state=o.contents[0].state_seq[-1])
             # Must be in the last state before merging
-            if isinstance(o.contents[0], Plate):
-                start_obj.append(get_obj(obj_string="Plate",
-                        type_="is_object",
-                        state=StringToObject.get("Plate")().state_seq[0]))
-            else:
-                start_obj.append(get_obj(obj_string=subtask.args[i],
-                    type_="is_object", state=o.contents[0].state_seq[-1]))
+            # if isinstance(o.contents[0], Plate):
+            #     start_obj.append(get_obj(obj_string="Plate",
+            #             type_="is_object",
+            #             state=StringToObject.get("Plate")().state_seq[0]))
+            # else:
+            start_obj.append(get_obj(obj_string=subtask.args[i],
+                type_="is_object", state=o.contents[0].state_seq[-1]))
 
         # Merging objects
         object_list[0].merge(object_list[1])

@@ -76,7 +76,7 @@ class BayesianDelegator(Delegator):
         elif self.model_type == "dc":
             probs = self.add_dc_subtasks()
         else:
-            probs = self.add_subtasks_alter()
+            probs = self.add_subtasks()
         return probs
 
     def subtask_alloc_is_doable(self, env, subtask, subtask_agent_names):
@@ -110,7 +110,6 @@ class BayesianDelegator(Delegator):
         (subtask x subtask_agent_names)."""
         if subtask is None:
             return 0
-        print("GO IN GET_NEXT ACTION for lower bound")
         print("subtask name", subtask)
         print("subtask agents", subtask_agent_names)
         _ = self.planner.get_next_action(
@@ -623,13 +622,13 @@ class BayesianDelegator(Delegator):
                                 remaining_agents_roles=remaining_agents,
                                 remaining_subtasks=remaining_subtasks,
                                 base_subtask_alloc=subtask_alloc)
-            finalReturn = []
-            for subtaskAlloc in subtask_allocs:
-                if subtaskAlloc not in finalReturn:
-                    if len(subtaskAlloc) == 1 and len(subtaskAlloc[0].subtask_agent_names) != 2:
-                        pass
-                    else:
-                        finalReturn.append(subtaskAlloc)
+        finalReturn = []
+        for subtaskAlloc in subtask_allocs:
+            if subtaskAlloc not in finalReturn:
+                if len(subtaskAlloc) == 1 and len(subtaskAlloc[0].subtask_agent_names) != 2:
+                    pass
+                else:
+                    finalReturn.append(subtaskAlloc)
         # print("subtask_allocs", SubtaskAllocDistribution(subtask_allocs))
         # print("final return", SubtaskAllocDistribution(finalReturn))
         return SubtaskAllocDistribution(finalReturn)
