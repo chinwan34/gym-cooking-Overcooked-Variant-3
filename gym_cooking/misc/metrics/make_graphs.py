@@ -314,7 +314,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
             #     xlabel = "", xticks = [], ylim = [0, 1000])
             sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
-                xlabel = "", xticks = [], ylim = [0, 1000])
+                xlabel = "", xticks = [], ylim = [0, 50])
         legend = plt.legend(frameon=False)
         legend_fig = legend.figure
         legend_fig.canvas.draw()
