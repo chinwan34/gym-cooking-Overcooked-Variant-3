@@ -14,8 +14,8 @@ import recipe_planner
 recipes = [
         "tomato",
         "tl",
-        "salad",
         "chicken",
+        "salad",
     ]
 total_num_subtasks = {
         "tomato": 3,
@@ -158,13 +158,13 @@ def import_data(key, path_pickles, num_agents):
             "map": map_,
             "seed": seed,
             "recipe": recipe,
-            # 'model': model_key[model],
+            'model': model_key[model],
             'role': role_key[role],
             "dummy": 0
         }
 
         # LOAD IN FILE
-        fname = '{}_{}_agents{}_seed{}{}.pkl'.format(map_, recipe, num_agents, seed, model)
+        fname = '{}_{}_agents{}_seed{}{}{}.pkl'.format(map_, recipe, num_agents, seed, model, role)
         if os.path.exists(os.path.join(path_pickles, fname)):
             try:
                 data = pickle.load(open(os.path.join(path_pickles, fname), "rb"))
@@ -250,14 +250,12 @@ def plot_data(key, path_save, df, num_agents, legend=False):
     color_palette = sns.color_palette()
     sns.set_style('ticks')
     sns.set_context('talk', font_scale=1)
-
     for i, recipe in enumerate(recipes):
         for j, map_ in enumerate(maps):
             data = df.loc[(df['map']==map_) & (df['recipe']==recipe), :]
             if len(data) == 0:
                 print('empty data on ', (recipe, map_))
                 continue
-            print(data)
 
             plt.figure(figsize=(3,3))
 
@@ -306,13 +304,12 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             plt.close()
 
             print('   generated graph for {}, {}'.format(recipe, map_))
-
     # Make Legend
     if arglist.legend:
         plt.figure(figsize=(10,10))
         if key == 'completion':
             sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
-            # sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+            # sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
         else:
             # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
             #     xlabel = "", xticks = [], ylim = [0, 1000])
