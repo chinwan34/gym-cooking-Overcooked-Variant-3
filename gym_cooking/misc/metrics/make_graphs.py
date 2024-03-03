@@ -266,11 +266,12 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
                 # ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
                 #     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
+                print(data)
                 ax = sns.lineplot(x = 't', y = 'n', hue="role", data=data,
                     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
                 plt.xlabel('Steps')
                 plt.ylim([0, 1]),
-                plt.xlim([0, 100])
+                plt.xlim([0, 50])
             else:
                 hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]

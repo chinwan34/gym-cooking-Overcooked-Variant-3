@@ -214,7 +214,12 @@ class RealAgent:
                 nextLoc = env.nextLocationBase(a, self.location)
                 if isinstance(nextLoc, Floor):
                     actionThatWorks.append(a)
-            actionThatWorks.append((0,0))
+            stay = True
+            for a in actions:
+                if env.is_occupied_location(a, self.location):
+                    stay = False
+            if stay:
+                actionThatWorks.append((0,0))
             self.action = random.choice(actionThatWorks)
         # Otherwise, plan accordingly.
         else:

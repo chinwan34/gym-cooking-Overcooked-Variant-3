@@ -204,6 +204,10 @@ class World:
             return True
         return False
 
+    def is_delivery(self, location):
+        gs = self.get_gridsquare_at(location)
+        return isinstance(gs, Delivery)
+
     def clear_object(self, position):
         """Clears object @ position in self.rep and replaces it with an empty space"""
         x, y = position

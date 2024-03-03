@@ -202,7 +202,7 @@ class OvercookedEnvironment(gym.Env):
             return [Chopper(), InvincibleWaiter()]
         elif typeUsed == "three":
             if num_agents == 2:
-                return [ChoppingMerger(), ChoppingWaiter()]
+                return [ChoppingMerger(), MergingWaiter()]
             elif num_agents == 3:
                 return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
 
@@ -449,6 +449,9 @@ class OvercookedEnvironment(gym.Env):
 
     def nextLocationBase(self, agent_action, currentLocation):
         return self.world.get_gridsquare_at(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))
+
+    def is_occupied_location(self, agent_action, currentLocation):
+        return self.world.is_occupied(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action))) or self.world.is_delivery(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))
 
     def is_collision(self, agent1_loc, agent2_loc, agent1_action, agent2_action):
         """Returns whether agents are colliding.
