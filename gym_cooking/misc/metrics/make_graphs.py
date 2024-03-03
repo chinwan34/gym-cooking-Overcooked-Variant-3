@@ -63,7 +63,7 @@ agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "very-easy": {"chicken": 40, "salad": 30},
+    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
@@ -247,6 +247,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
     print('generating {} graphs'.format(key))
     # hue_order = [model_key[l] for l in models]
     hue_order = [role_key[l] for l in roles]
+    dataAll = []
     color_palette = sns.color_palette()
     sns.set_style('ticks')
     sns.set_context('talk', font_scale=1)
@@ -285,6 +286,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                     xticks = [],
                     ylim = ylims[key],
                 )
+
             plt.legend('')
             plt.gca().legend().set_visible(False)
             sns.despine()
@@ -303,25 +305,30 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             plt.savefig(os.path.join(path_save, "{}_{}_{}.png".format(key, recipe, map_)))
             plt.close()
 
+            dataAll.append(data)
+
             print('   generated graph for {}, {}'.format(recipe, map_))
     # Make Legend
     if arglist.legend:
-        plt.figure(figsize=(10,10))
-        if key == 'completion':
-            sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
-            # sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
-        else:
-            # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
-            #     xlabel = "", xticks = [], ylim = [0, 1000])
-            sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
-                xlabel = "", xticks = [], ylim = [0, 50])
-        legend = plt.legend(frameon=False)
-        legend_fig = legend.figure
-        legend_fig.canvas.draw()
-        # bbox = legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted())
-        # legend_fig.savefig(os.path.join(path_save, 'legend.pdf'), dpi="figure", bbox_inches=bbox)
-        legend_fig.savefig(os.path.join(path_save, '{}_legend_full.png'.format(key)), dpi="figure")
-        plt.close()
+        for data in dataAll:
+            plt.figure(figsize=(10,10))
+            if key == 'completion':
+                sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+                # sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+            else:
+                # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
+                #     xlabel = "", xticks = [], ylim = [0, 1000])
+                sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
+                    xlabel = "", xticks = [], ylim = [0, 50])
+            legend = plt.legend(frameon=False)
+            legend_fig = legend.figure
+            legend_fig.canvas.draw()
+            # bbox = legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted())
+            # legend_fig.savefig(os.path.join(path_save, 'legend.pdf'), dpi="figure", bbox_inches=bbox)
+            recipeUsed = data.at[0, 'recipe']
+            mapUsed = data.at[0, 'map']
+            legend_fig.savefig(os.path.join(path_save, '{}_{}_legend_full.png'.format(recipeUsed, mapUsed)), dpi="figure")
+            plt.close()
 
 
 
