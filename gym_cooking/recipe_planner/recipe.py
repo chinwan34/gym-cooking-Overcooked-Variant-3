@@ -229,7 +229,7 @@ class TomatoBurger(Recipe):
 
 class SaladBurger(Recipe):
     def __init__(self):
-        Recipe.__init__(self, 'TomatoBurger')
+        Recipe.__init__(self, 'SaladBurger')
         self.add_ingredient(BurgerMeat(state_index=-1))
         self.add_ingredient(Bread(state_index=-1))
         self.add_ingredient(Tomato(state_index=-1))

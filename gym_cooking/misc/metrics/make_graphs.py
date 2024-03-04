@@ -16,12 +16,14 @@ recipes = [
         "tl",
         "chicken",
         "salad",
+        "burger",
     ]
 total_num_subtasks = {
         "tomato": 3,
         "tl": 6,
         "salad": 5,
         "chicken": 7,
+        "burger": 6,
     }
 models = [
        "_model1-bd_model2-bd",
@@ -63,7 +65,7 @@ agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21},
+    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
@@ -311,8 +313,10 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             print('   generated graph for {}, {}'.format(recipe, map_))
     # Make Legend
     if arglist.legend:
+        counter = 0
         for data in dataAll:
             plt.figure(figsize=(10,10))
+            print(data)
             if key == 'completion':
                 sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
                 # sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
@@ -326,10 +330,12 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             legend_fig.canvas.draw()
             # bbox = legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted())
             # legend_fig.savefig(os.path.join(path_save, 'legend.pdf'), dpi="figure", bbox_inches=bbox)
-            recipeUsed = data.at[0, 'recipe']
-            mapUsed = data.at[0, 'map']
+            recipeUsed = data.at[counter, 'recipe']
+            
+            mapUsed = data.at[counter, 'map']
             legend_fig.savefig(os.path.join(path_save, '{}_{}_legend_full.png'.format(recipeUsed, mapUsed)), dpi="figure")
             plt.close()
+            counter += len(data)
 
 
 

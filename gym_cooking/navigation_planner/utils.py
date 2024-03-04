@@ -19,7 +19,7 @@ StringToGridSquare = {
         "Plate"    : Counter,
         "Cutboard" : Cutboard,
         "Delivery" : Delivery,
-        "Cookingpan" : CookingPan,
+        "CookingPan" : CookingPan,
         "PizzaOven" : PizzaOven,
         "Sink"     : Sink,
         "Fryer"    : Fryer,
