@@ -79,6 +79,16 @@ class CookingWaiter(Role):
         self.probableActions = [Get, Cook, Deliver, Clean]
         self.name = "CookingWaiter"
 
+class CookingMergingWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Cook, Merge, Deliver]
+        self.name = "CookingMergingWaiter"
+
+class ExceptionalChefMerger(Role):
+    def __init__(self):
+        self.probableActions = [Get, Fry, Bake, Cook, Chop, Merge]
+        self.name = "ExceptionalChefMerger"
+
 class BakingWaiter(Role):
     def __init__(self):
         self.probableActions = [Get, Bake, Deliver, Clean]

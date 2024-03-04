@@ -199,10 +199,10 @@ class OvercookedEnvironment(gym.Env):
         elif typeUsed == "none":
             return [InvincibleWaiter(), InvincibleWaiter()]
         elif typeUsed == "unbalanced":
-            return [Chopper(), InvincibleWaiter()]
+            return [ChoppingWaiter(), ExceptionalChefMerger()]
         elif typeUsed == "three":
             if num_agents == 2:
-                return [ChoppingMerger(), MergingWaiter()]
+                return [ExceptionalChefMerger(), CookingMergingWaiter()]
             elif num_agents == 3:
                 return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
 
