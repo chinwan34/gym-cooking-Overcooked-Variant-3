@@ -5,6 +5,7 @@ import networkx as nx
 import copy
 import matplotlib.pyplot as plt
 from functools import lru_cache
+from utils.core import *
 
 import recipe_planner.utils as recipe
 from navigation_planner.utils import manhattan_dist
@@ -43,8 +44,8 @@ class World:
             objs += o
         for obj in objs:
             self.add_object(obj, obj.location)
-        for obj in self.objects["Tomato"]:
-            self.add_object(obj, obj.location)
+        # for obj in self.objects["Tomato"]:
+        #     self.add_object(obj, obj.location)
         return self.rep
 
     def print_objects(self):
@@ -166,7 +167,9 @@ class World:
                 min_bound_to_B = min(bound_1_to_B, bound_2_to_B)
 
                 # For chop or deliver, must bring A to B.
-                if isinstance(subtask, recipe.Chop) or isinstance(subtask, recipe.Deliver):
+                if isinstance(subtask, recipe.Chop) or isinstance(subtask, recipe.Deliver) or\
+                    isinstance(subtask, recipe.Bake) or isinstance(subtask, recipe.Cook) or \
+                    isinstance(subtask, recipe.Clean) or isinstance(subtask, recipe.Fry):
                     bound = min_bound_to_A + bound_between_agents - 1
                 # For merge, agents can separately go to A and B and then meet in the middle.
                 elif isinstance(subtask, recipe.Merge):
@@ -200,6 +203,10 @@ class World:
         if o:
             return True
         return False
+
+    def is_delivery(self, location):
+        gs = self.get_gridsquare_at(location)
+        return isinstance(gs, Delivery)
 
     def clear_object(self, position):
         """Clears object @ position in self.rep and replaces it with an empty space"""
@@ -237,7 +244,7 @@ class World:
         objs = list()
 
         for key in sorted(self.objects.keys()):
-            if key != "Counter" and key != "Floor" and "Supply" not in key and key != "Delivery" and key != "Cutboard":
+            if key != "Counter" and key != "Floor" and "Supply" not in key and key != "Delivery" and key != "Cutboard" and key != "Fryer" and key != "CookingPan" and key != "PizzaOven" and key != "Sink" and key != "TrashCan":
                 objs.append(tuple(list(map(lambda o: o.get_repr(), self.objects[key]))))
 
         # Must return a tuple because this is going to get hashed.
@@ -266,6 +273,17 @@ class World:
         else:
             return list(map(lambda o: o.location, list(filter(lambda o: obj == o,
                 self.objects[obj.name]))))
+    
+    def get_object_locs_plate(self, obj, is_held):
+        if obj.name not in self.objects.keys():
+            return []
+        
+        filtered_objects = list(
+            map(lambda o: o.location, list(filter(lambda o: obj == o and 
+            o.is_held == is_held and len(o.contents) == 1 and isinstance(o.contents[0], Plate) and 
+            o.contents[0].state_index == 0, self.objects[obj.name]))))
+        
+        return filtered_objects
 
     def get_all_object_locs(self, obj):
         return list(set(self.get_object_locs(obj=obj, is_held=True) + self.get_object_locs(obj=obj, is_held=False)))

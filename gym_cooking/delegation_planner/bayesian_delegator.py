@@ -5,6 +5,7 @@ from navigation_planner.utils import get_subtask_obj, get_subtask_action_obj, ge
 from utils.interact import interact
 from utils.utils import agent_settings
 from recipe_planner.utils import Merge
+from utils.core import *
 
 from collections import defaultdict, namedtuple
 from itertools import permutations, product, combinations
@@ -86,6 +87,9 @@ class BayesianDelegator(Delegator):
             return True
         agent_locs = [agent.location for agent in list(filter(lambda a: a.name in subtask_agent_names, env.sim_agents))]
         start_obj, goal_obj = get_subtask_obj(subtask=subtask)
+        # if not isinstance(start_obj, list) and len(start_obj.contents) == 1 and isinstance(start_obj.contents[0], Plate):
+        #     pass
+        
         subtask_action_obj = get_subtask_action_obj(subtask=subtask)
         A_locs, B_locs = env.get_AB_locs_given_objs(
                 subtask=subtask,
@@ -106,12 +110,15 @@ class BayesianDelegator(Delegator):
         (subtask x subtask_agent_names)."""
         if subtask is None:
             return 0
+        print("subtask name", subtask)
+        print("subtask agents", subtask_agent_names)
         _ = self.planner.get_next_action(
                 env=obs,
                 subtask=subtask,
                 subtask_agent_names=subtask_agent_names,
                 other_agent_planners={})
         value = self.planner.v_l[(self.planner.cur_state.get_repr(), subtask)]
+        print("COMPLETED GET LOWER BOUND FOR SUBTASK ALLOC")
         return value
 
     def prune_subtask_allocs(self, observation, subtask_alloc_probs):
@@ -135,7 +142,7 @@ class BayesianDelegator(Delegator):
             if all([t.subtask is None for t in subtask_alloc]) and len(subtask_alloc) > 1:
                 subtask_alloc_probs.delete(subtask_alloc)
         
-        print("After pruning", subtask_alloc_probs)
+        print("After pruning!!!!!!!!!!!!!!!!!!!!!!!!!!", subtask_alloc_probs)
 
         return subtask_alloc_probs
 
@@ -148,14 +155,16 @@ class BayesianDelegator(Delegator):
         probs = self.prune_subtask_allocs(
                 observation=obs, subtask_alloc_probs=probs)
         probs.normalize()
+        # print(probs)
 
 
         if priors_type == 'spatial':
+            print("GO IN SPATIAL PRIORS")
             self.probs = self.get_spatial_priors(obs, probs)
         elif priors_type == 'uniform':
             # Do nothing because probs already initialized to be uniform.
             self.probs = probs
-
+        print("SET PRIORS FINAL STEPS")
         self.ensure_at_least_one_subtask()
         self.probs.normalize()
 
@@ -163,19 +172,26 @@ class BayesianDelegator(Delegator):
     def get_spatial_priors(self, obs, some_probs):
         """Setting prior probabilities w.r.t spatial metrics."""
         # Weight inversely by distance.
+        counterHey = -1
         for subtask_alloc in some_probs.enumerate_subtask_allocs():
+            counterHey+=1
+            print("{}/{} completed".format(counterHey, len(some_probs.enumerate_subtask_allocs())))
+            
             total_weight = 0
             for t in subtask_alloc:
                 if t.subtask is not None:
                     # Calculate prior with this agent's planner.
+                    print("GO IN GET_LOWER_BOUND_FOR_SUBTASK_ALLOC")
                     total_weight += 1.0 / float(self.get_lower_bound_for_subtask_alloc(
                         obs=copy.copy(obs),
                         subtask=t.subtask,
                         subtask_agent_names=t.subtask_agent_names))
             # Weight by number of nonzero subtasks.
-            some_probs.update(
+            # WATCH OUT, CHANGED BY AN INDENT
+                some_probs.update(
                     subtask_alloc=subtask_alloc,
                     factor=len(t)**2. * total_weight)
+        print("COMPLETEd GET SPATIAL PRIORs")
         return some_probs
 
     def get_other_agent_planners(self, obs, backup_subtask):
@@ -362,9 +378,10 @@ class BayesianDelegator(Delegator):
         # This case is hit if we have more agents than subtasks.
         if not remaining_subtasks:
             for agent in remaining_agents_roles:
+                # inputForPart2 = tuple(agent[0])
+                # print(inputForPart2)
                 new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=None, subtask_agent_names=(agent[0]))]
                 other_subtask_allocs.append(new_subtask_alloc)
-            print("more agents", other_subtask_allocs)
             return other_subtask_allocs
 
         # Otherwise assign remaining agents to remaining subtasks.
@@ -372,7 +389,7 @@ class BayesianDelegator(Delegator):
         if len(remaining_agents_roles) == 1:
             for t in remaining_subtasks:
                 if type(t) in remaining_agents_roles[0][1].probableActions:
-                    new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=t, subtask_agent_names=(remaining_agents_roles[0][0]))]
+                    new_subtask_alloc = base_subtask_alloc + [SubtaskAllocation(subtask=t, subtask_agent_names=(remaining_agents_roles[0][0],))]
                     other_subtask_allocs.append(new_subtask_alloc)
             return other_subtask_allocs
         # If >1 agent remaining, create cooperative and divide & conquer
@@ -474,7 +491,6 @@ class BayesianDelegator(Delegator):
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
-                        print("Current actions", ts)
                         subtask_alloc = [
                                 SubtaskAllocation(subtask=ts[0], subtask_agent_names=(first_agents[0],)),
                                 SubtaskAllocation(subtask=ts[1], subtask_agent_names=(first_agents[1],)),]
@@ -504,7 +520,7 @@ class BayesianDelegator(Delegator):
                 subtasks_temp = subtasks + [None for _ in range(len(self.all_agent_names) - 1)]
                 # Cooperative subtasks (same subtask assigned to agents).
                 for t in subtasks_temp:
-                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None or type(t) == Merge:
+                    if all(type(t) in roleUsed[1].probableActions for roleUsed in first_agents) or t == None:
                         agentNamesToPut = [first_agent[0] for first_agent in first_agents]
                         subtask_alloc = [SubtaskAllocation(subtask=t, subtask_agent_names=tuple(agentNamesToPut))]
                         remaining_agents = sorted(list(set(self.all_agent_role_names) - set(first_agents)))
@@ -522,7 +538,6 @@ class BayesianDelegator(Delegator):
                 # Divide and Conquer subtasks (different subtask assigned to remaining agents).
                 if len(subtasks_temp) > 1:
                     for ts in permutations(subtasks_temp, 2):
-                        print("Allowed actions", ts)
                         listToUse = []
                         agentToDelete = []
                         subtask_alloc = []
@@ -607,13 +622,13 @@ class BayesianDelegator(Delegator):
                                 remaining_agents_roles=remaining_agents,
                                 remaining_subtasks=remaining_subtasks,
                                 base_subtask_alloc=subtask_alloc)
-            finalReturn = []
-            for subtaskAlloc in subtask_allocs:
-                if subtaskAlloc not in finalReturn:
-                    if len(subtaskAlloc) == 1 and len(subtaskAlloc[0].subtask_agent_names) != 2:
-                        pass
-                    else:
-                        finalReturn.append(subtaskAlloc)
+        finalReturn = []
+        for subtaskAlloc in subtask_allocs:
+            if subtaskAlloc not in finalReturn:
+                if len(subtaskAlloc) == 1 and len(subtaskAlloc[0].subtask_agent_names) != 2:
+                    pass
+                else:
+                    finalReturn.append(subtaskAlloc)
         # print("subtask_allocs", SubtaskAllocDistribution(subtask_allocs))
         # print("final return", SubtaskAllocDistribution(finalReturn))
         return SubtaskAllocDistribution(finalReturn)

@@ -13,7 +13,12 @@ from collections import namedtuple
 class Role:
     def __init__(self):
         self.probableActions = None
-    
+
+class IdlePerson(Role):
+    def __init__(self):
+        self.probableActions = []
+        self.name = "IdlePerson"
+
 class Merger(Role):
     def __init__(self):
         self.probableActions = [Get, Merge]
@@ -48,11 +53,21 @@ class Cleaner(Role):
     def __init__(self):
         self.probableActions = [Get, Clean]
         self.name = "Cleaner"
+
+class WaiterDeliverer(Role):
+    def __init__(self):
+        self.probableActions = [Merger, Deliver]
+        self.name = "WaiterDeliverer"
     
 class MergingWaiter(Role):
     def __init__(self):
         self.probableActions = [Get, Merge, Deliver, Clean]
         self.name = "MergingWaiter"
+
+class ChoppingMerger(Role):
+    def __init__(self):
+        self.probableActions = [Get, Chop, Merge]
+        self.name = "ChoppingMerger"
 
 class ChoppingWaiter(Role):
     def __init__(self):
@@ -63,6 +78,16 @@ class CookingWaiter(Role):
     def __init__(self):
         self.probableActions = [Get, Cook, Deliver, Clean]
         self.name = "CookingWaiter"
+
+class CookingMergingWaiter(Role):
+    def __init__(self):
+        self.probableActions = [Get, Cook, Merge, Deliver]
+        self.name = "CookingMergingWaiter"
+
+class ExceptionalChefMerger(Role):
+    def __init__(self):
+        self.probableActions = [Get, Fry, Bake, Cook, Chop, Merge]
+        self.name = "ExceptionalChefMerger"
 
 class BakingWaiter(Role):
     def __init__(self):
@@ -180,7 +205,7 @@ class Fryer(GridSquare):
 
 class PizzaOven(GridSquare):
     def __init__(self, location):
-        GridSquare.__init__(self, "Pizzaoven", location)
+        GridSquare.__init__(self, "PizzaOven", location)
         self.rep = Rep.PIZZAOVEN
         self.collidable = True
     def __eq__(self, other):
@@ -223,6 +248,7 @@ class AgentCounter(Counter):
         GridSquare.__init__(self,"Agent-Counter", location)
         self.rep = Rep.COUNTER
         self.collidable = True
+        # self.name = "AgentCounter"
     def __eq__(self, other):
         return Counter.__eq__(self, other)
     def __hash__(self):

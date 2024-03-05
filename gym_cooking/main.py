@@ -26,6 +26,7 @@ def parse_arguments():
     parser.add_argument("--max-num-subtasks", type=int, default=14, help="Max number of subtasks for recipe")
     parser.add_argument("--seed", type=int, default=1, help="Fix pseudorandom seed")
     parser.add_argument("--with-image-obs", action="store_true", default=False, help="Return observations as images (instead of objects)")
+    parser.add_argument("--role", type=str, default=None, help="Role assignment for each play (optimal, unbalanced, extreme, three, none)")
 
     # Delegation Planner
     parser.add_argument("--beta", type=float, default=1.3, help="Beta for softmax in Bayesian delegation updates")
@@ -69,6 +70,7 @@ def findSuitableRoles(actionsNotSatisfied, num_agents):
         combinationsBasedOnAgents = combinations(listOfRoles2, num_agents)
     elif num_agents == 1:
         combinationsBasedOnAgents = SingleAgentRole
+        return SingleAgentRole
 
     for eachCombination in combinationsBasedOnAgents:
         currentSet = set()
@@ -82,6 +84,20 @@ def findSuitableRoles(actionsNotSatisfied, num_agents):
 
         if actionsNotSatisfied.issubset(currentSet):
             return eachCombination
+    
+def roleAssignmentAlgorithm(typeUsed, num_agents):
+    if typeUsed == "extreme":
+        return [InvincibleWaiter(), IdlePerson()]
+    elif typeUsed == "none":
+        return [InvincibleWaiter(), InvincibleWaiter()]
+    elif typeUsed == "unbalanced":
+        return [ChoppingWaiter(), ExceptionalChefMerger()]
+    elif typeUsed == "three":
+        if num_agents == 2:
+            return [ExceptionalChefMerger(), CookingMergingWaiter()]
+        elif num_agents == 3:
+            return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
+
 
 def initialize_agents(arglist):
     real_agents = []
@@ -109,9 +125,12 @@ def initialize_agents(arglist):
                     actionLeft = list(dict.fromkeys(actionLeft))
                     actionLeft = set(action.name for action in actionLeft)
 
-                roleList = findSuitableRoles(actionLeft, arglist.num_agents)
+                roleList = []
+                if not arglist.role or arglist.role == "optimal":
+                    roleList = findSuitableRoles(actionLeft, arglist.num_agents)
+                else:
+                    roleList = roleAssignmentAlgorithm(arglist.role, arglist.num_agents)
                 if (finished == False):
-                    print("I got here")
                     loc = line.split(' ')
                     real_agent = RealAgent(
                         arglist=arglist,
@@ -133,7 +152,6 @@ def main_loop(arglist):
     obs = env.reset()
     # game = GameVisualize(env)
     real_agents = initialize_agents(arglist=arglist)
-
     # Info bag for saving pkl files
     bag = Bag(arglist=arglist, filename=env.filename)
     bag.set_recipe(recipe_subtasks=env.all_subtasks)
@@ -144,8 +162,6 @@ def main_loop(arglist):
         for agent in real_agents:
             action = agent.select_action(obs=obs)
             action_dict[agent.name] = action
-        
-        print("After action")
 
         obs, reward, done, info = env.step(action_dict=action_dict)
 

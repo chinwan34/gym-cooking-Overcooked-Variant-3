@@ -10,15 +10,32 @@ StringToGridSquare = {
         "Tomato"   : Counter,
         "Lettuce"  : Counter,
         "Onion"    : Counter,
+        "BurgerMeat" : Counter,
+        "Bread"    : Counter,
+        "PizzaDough" : Counter,
+        "Cheese"   : Counter,
+        "FriedChicken" : Counter,
+        "Fish"     : Counter,
         "Plate"    : Counter,
         "Cutboard" : Cutboard,
         "Delivery" : Delivery,
+        "CookingPan" : CookingPan,
+        "PizzaOven" : PizzaOven,
+        "Sink"     : Sink,
+        "Fryer"    : Fryer,
         }
 
 StringToObject = {
         "Tomato"  : Tomato,
         "Lettuce" : Lettuce,
         "Onion"   : Onion,
+        "BurgerMeat" : BurgerMeat,
+        "Bread"    : Bread,
+        "PizzaDough" : PizzaDough,
+        "Cheese"   : Cheese,
+        "Chicken" : FriedChicken,
+        "Fish"     : Fish,
+        "Plate"    : Plate,
         }
 
 
@@ -79,8 +96,37 @@ def get_single_actions(env, agent):
                 actions.append(t)
     # doing nothing is always possible
     actions.append((0, 0))
-
     return actions
+
+def get_single_actions_alter(env, agent):
+    actions = []
+
+    agent_locs = list(map(lambda a: a.location, env.sim_agents))
+
+    # Check valid movement actions
+    for t in [(0, 1), (0, -1), (-1, 0), (1, 0)]:
+        new_loc = env.world.inbounds(tuple(np.asarray(agent.location) + np.asarray(t)))
+        # Check to make sure not at boundary
+       
+        gs = env.world.get_gridsquare_at(new_loc)
+        # Can move into floors
+        if not gs.collidable:
+            actions.append(t)
+        # Can interact with deliveries
+        elif isinstance(gs, Delivery):
+            actions.append(t)
+        # Can interact with others if at least one of me or gs is holding something, or mergeable
+        elif gs.holding is None and agent.holding is not None:
+            actions.append(t)
+        elif gs.holding is not None and isinstance(gs.holding, Object) and agent.holding is None:
+            actions.append(t)
+        elif gs.holding is not None and isinstance(gs.holding, Object) and\
+            agent.holding is not None and mergeable(agent.holding, gs.holding):
+            actions.append(t)
+    # doing nothing is always possible
+    actions.append((0, 0))
+    return actions
+
 
 def euclidean_dist(A, B):
     return np.linalg.norm(B - A)
@@ -120,12 +166,17 @@ def get_obj(obj_string, type_, state, location=(None, None)):
     elif type_ == "is_object":
         if "-" in obj_string:
             obj_strs = obj_string.split("-")
-            # just getting objects
             objects = [get_obj(obj_string=s,
                 type_="is_object", state=FoodState.FRESH) for s in obj_strs]
+
+            # objects = [get_obj(obj_string=s,
+            #       type_="is_object", state=StringToObject.get(s)().state_seq[0]) for s in obj_strs]
             # getting into right food env
             for i, s in enumerate(obj_strs):
                 if s == "Plate":
+                    # objects[i] = get_obj(obj_string=s,
+                    #     type_="is_object",
+                    #     state=StringToObject.get("Plate")().state_seq[1])
                     continue
                 objects[i] = get_obj(obj_string=s,
                         type_="is_object",
@@ -138,7 +189,10 @@ def get_obj(obj_string, type_, state, location=(None, None)):
             return Object(location, Plate())
         elif obj_string in StringToObject:
             obj = StringToObject[obj_string]()
-            obj.set_state(state)
+            if state in obj.state_seq:
+                obj.set_state(state)
+            else: 
+                obj.set_state(obj.state_seq[0])
             return Object(location, obj)
         else:
             raise NotImplementedError("Type {} is not recognized".format(type_))
@@ -148,6 +202,14 @@ def get_subtask_action_obj(subtask):
         obj = get_obj(obj_string=subtask.args[0], type_="is_supply", state=None)
     elif isinstance(subtask, recipe.Chop):
         obj = get_obj(obj_string="Cutboard", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Fry):
+        obj = get_obj(obj_string="Fryer", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Cook):
+        obj = get_obj(obj_string="CookingPan", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Bake):
+        obj = get_obj(obj_string="PizzaOven", type_="is_supply", state=None)
+    elif isinstance(subtask, recipe.Clean):
+        obj = get_obj(obj_string="Sink", type_="is_supply", state=None)
     elif isinstance(subtask, recipe.Deliver):
         obj = get_obj(obj_string="Delivery", type_="is_supply", state=None)
     elif isinstance(subtask, recipe.Merge):
@@ -165,6 +227,30 @@ def get_subtask_obj(subtask):
                 type_="is_object", state=FoodState.FRESH)
         goal_obj = get_obj(obj_string=subtask.args[0],
                 type_="is_object", state=FoodState.CHOPPED)
+    
+    elif isinstance(subtask, recipe.Clean):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNCLEANED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.FRESH)
+    
+    elif isinstance(subtask, recipe.Fry):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNFRIED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.COOKED) 
+    
+    elif isinstance(subtask, recipe.Cook):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNCOOKED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.COOKED) 
+    
+    elif isinstance(subtask, recipe.Bake):
+        start_obj = get_obj(obj_string=subtask.args[0],
+                type_="is_object", state=FoodState.UNBAKED)
+        goal_obj = get_obj(obj_string=subtask.args[0], 
+                type_="is_object", state=FoodState.COOKED) 
 
     elif isinstance(subtask, recipe.Merge):
         # only need in last state
@@ -178,12 +264,21 @@ def get_subtask_obj(subtask):
 
         for i, o in enumerate(object_list):
             if isinstance(o.contents[0], Plate):
+            #     start_obj.append(get_obj(obj_string="Plate",
+            #             type_="is_object",
+            #             state=StringToObject.get("Plate")().state_seq[0]))
+            #     continue
                 start_obj.append(copy.copy(o))
                 continue
 
             object_list[i] = get_obj(obj_string=subtask.args[i],
                     type_="is_object", state=o.contents[0].state_seq[-1])
             # Must be in the last state before merging
+            # if isinstance(o.contents[0], Plate):
+            #     start_obj.append(get_obj(obj_string="Plate",
+            #             type_="is_object",
+            #             state=StringToObject.get("Plate")().state_seq[0]))
+            # else:
             start_obj.append(get_obj(obj_string=subtask.args[i],
                 type_="is_object", state=o.contents[0].state_seq[-1]))
 

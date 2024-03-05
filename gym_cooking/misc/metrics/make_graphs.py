@@ -14,12 +14,16 @@ import recipe_planner
 recipes = [
         "tomato",
         "tl",
-        "salad"
+        "chicken",
+        "salad",
+        "burger",
     ]
 total_num_subtasks = {
         "tomato": 3,
         "tl": 6,
-        "salad": 5
+        "salad": 5,
+        "chicken": 7,
+        "burger": 6,
     }
 models = [
        "_model1-bd_model2-bd",
@@ -35,17 +39,33 @@ model_key = {
     "_model1-dc_model2-dc": "D&C",
     "_model1-greedy_model2-greedy": "Greedy",
 }
+roles = [
+    "role-extreme",
+    "role-optimal",
+    "role-unbalanced",
+    "role-three",
+    "role-none",
+]
+role_key = {
+    "role-extreme": "extreme",
+    "role-optimal": "optimal",
+    "role-unbalanced": "unbalanced",
+    "role-three": "three",
+    "role-none": "none",
+}
 maps = [
         "full-divider",
         "open-divider",
-        "partial-divider"
+        "partial-divider",
+        "very-easy",
         ]
 seeds = range(1,10)
 agents = ['agent-1', 'agent-2', 'agent-3', 'agent-4']
 agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "full-divider": {"tomato": 17, "tl": 31, "salad": 21}
+    "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
+    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
@@ -135,17 +155,18 @@ def compute_stats(path_pickles, num_agents):
 def import_data(key, path_pickles, num_agents):
     df = list()
 
-    for recipe, model, map_, seed in itertools.product(recipes, models, maps, seeds):
+    for recipe, model, map_, seed, role in itertools.product(recipes, models, maps, seeds, roles):
         info = {
             "map": map_,
             "seed": seed,
             "recipe": recipe,
             'model': model_key[model],
+            'role': role_key[role],
             "dummy": 0
         }
 
         # LOAD IN FILE
-        fname = '{}_{}_agents{}_seed{}{}.pkl'.format(map_, recipe, num_agents, seed, model)
+        fname = '{}_{}_agents{}_seed{}{}{}.pkl'.format(map_, recipe, num_agents, seed, model, role)
         if os.path.exists(os.path.join(path_pickles, fname)):
             try:
                 data = pickle.load(open(os.path.join(path_pickles, fname), "rb"))
@@ -226,11 +247,12 @@ def get_shuffles(data, recipe):
 
 def plot_data(key, path_save, df, num_agents, legend=False):
     print('generating {} graphs'.format(key))
-    hue_order = [model_key[l] for l in models]
+    # hue_order = [model_key[l] for l in models]
+    hue_order = [role_key[l] for l in roles]
+    dataAll = []
     color_palette = sns.color_palette()
     sns.set_style('ticks')
     sns.set_context('talk', font_scale=1)
-
     for i, recipe in enumerate(recipes):
         for j, map_ in enumerate(maps):
             data = df.loc[(df['map']==map_) & (df['recipe']==recipe), :]
@@ -244,20 +266,29 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                 # plot ours last
                 hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
-                ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
+                # ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
+                #     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
+                ax = sns.lineplot(x = 't', y = 'n', hue="role", data=data,
                     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
                 plt.xlabel('Steps')
                 plt.ylim([0, 1]),
-                plt.xlim([0, 100])
+                plt.xlim([0, 50])
             else:
                 hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
-                sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order,\
+                # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order,\
+                #                 palette=color_palette, ci=68).set(
+                #     xlabel = "",
+                #     xticks = [],
+                #     ylim = ylims[key],
+                # )
+                sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order,\
                                 palette=color_palette, ci=68).set(
                     xlabel = "",
                     xticks = [],
                     ylim = ylims[key],
                 )
+
             plt.legend('')
             plt.gca().legend().set_visible(False)
             sns.despine()
@@ -276,23 +307,33 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             plt.savefig(os.path.join(path_save, "{}_{}_{}.png".format(key, recipe, map_)))
             plt.close()
 
-            print('   generated graph for {}, {}'.format(recipe, map_))
+            dataAll.append(data)
 
+            print('   generated graph for {}, {}'.format(recipe, map_))
     # Make Legend
     if arglist.legend:
-        plt.figure(figsize=(10,10))
-        if key == 'completion':
-            sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
-        else:
-            sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
-                xlabel = "", xticks = [], ylim = [0, 1000])
-        legend = plt.legend(frameon=False)
-        legend_fig = legend.figure
-        legend_fig.canvas.draw()
-        # bbox = legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted())
-        # legend_fig.savefig(os.path.join(path_save, 'legend.pdf'), dpi="figure", bbox_inches=bbox)
-        legend_fig.savefig(os.path.join(path_save, '{}_legend_full.png'.format(key)), dpi="figure")
-        plt.close()
+        counter = 0
+        for data in dataAll:
+            plt.figure(figsize=(10,10))
+            if key == 'completion':
+                sns.barplot(x = 't', y = 'n', hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+                # sns.barplot(x = 't', y = 'n', hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set()
+            else:
+                # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
+                #     xlabel = "", xticks = [], ylim = [0, 1000])
+                sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
+                    xlabel = "", xticks = [], ylim = [0, 50])
+            legend = plt.legend(frameon=False)
+            legend_fig = legend.figure
+            legend_fig.canvas.draw()
+            # bbox = legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted())
+            # legend_fig.savefig(os.path.join(path_save, 'legend.pdf'), dpi="figure", bbox_inches=bbox)
+            recipeUsed = data.at[counter, 'recipe']
+            
+            mapUsed = data.at[counter, 'map']
+            legend_fig.savefig(os.path.join(path_save, '{}_{}_legend_full.png'.format(recipeUsed, mapUsed)), dpi="figure")
+            plt.close()
+            counter += len(data)
 
 
 

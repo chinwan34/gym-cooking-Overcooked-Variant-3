@@ -542,6 +542,8 @@ class E2E_BRTDP:
 
         # BRTDP main loop.
         actions = self.get_actions(state_repr=cur_state.get_repr())
+
+        # if (subtask is not None):
         action_index = argmin([
             self.Q(state=cur_state, action=a, value_f=self.v_l)
             for a in actions])
@@ -552,6 +554,16 @@ class E2E_BRTDP:
         if (B > diff):
             print('exploring, B: {}, diff: {}'.format(B, diff))
             self.main()
+        # else: 
+        #     print("MOTHERFUCKER I GOT HERERERERERERERERERER")
+        #     possibleActions = [(0,1), (0,-1), (1,0), (-1,0)]
+        #     self.cur_state = cur_state
+        #     for possibleMove in possibleActions:
+        #         agent_next_loc = tuple(np.asarray(self.cur_state) + np.asarray(possibleMove))
+        #         print("HEYHEYHEY", self.world.get_gridsquare_at(location=agent_next_loc))
+        #         if isinstance(self.world.get_gridsquare_at(location=agent_next_loc), Floor):
+        #             return possibleMove
+        #     return (0,0)
 
         # Determine best action after BRTDP.
         if self.is_goal_state(cur_state.get_repr()):
@@ -559,6 +571,7 @@ class E2E_BRTDP:
             return None
         else:
             actions = self.get_actions(state_repr=cur_state.get_repr())
+            print("ACTIONS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", actions)
             qvals = [self.Q(state=cur_state, action=a, value_f=self.v_l)
                     for a in actions]
             print([x for x in zip(actions, qvals)])
@@ -571,3 +584,4 @@ class E2E_BRTDP:
             print('chose action:', a)
             print('cost:', self.cost(cur_state, a))
             return a
+

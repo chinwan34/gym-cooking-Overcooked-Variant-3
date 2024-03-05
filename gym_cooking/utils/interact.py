@@ -53,15 +53,21 @@ def interact(agent, world):
                 world.remove(agent.holding)
                 agent.acquire(obj)
                 world.insert(agent.holding)
+                gs.acquire(agent.holding)
+                agent.release()
                 # if playable version, merge onto counter first
-                if world.arglist.play:
-                    gs.acquire(agent.holding)
-                    agent.release()
+                # if world.arglist.play:
+                # #     gs.acquire(agent.holding)
+                # #     agent.release()
+                    
 
 
         # if holding something, empty gridsquare in front --> chop, cook, bake or drop
         elif not world.is_occupied(gs.location):
             obj = agent.holding
+            if not isinstance(gs, Delivery):
+                gs.acquire(obj)
+                agent.release()
             if isinstance(gs, Cutboard) and obj.needs_chopped() and not world.arglist.play: #and Chop in agent.role.probableActions:
                 obj.chop()
             elif isinstance(gs, Fryer) and obj.needs_fried() and not world.arglist.play: #and Fry in agent.role.probableActions:
@@ -73,11 +79,11 @@ def interact(agent, world):
             elif isinstance(gs, Sink) and obj.needs_cleaned() and not world.arglist.play: #and Clean in agent.role.probableActions:
                 obj.clean()
             else:
-                if not isinstance(gs, Delivery):
-                    gs.acquire(obj) # obj is put onto gridsquare
-                    agent.release()
-                    assert world.get_object_at(gs.location, obj, find_held_objects =\
-                        False).is_held == False, "Verifying put down works"
+                # if not isinstance(gs, Delivery):
+                #     gs.acquire(obj) # obj is put onto gridsquare
+                #     agent.release()
+                assert world.get_object_at(gs.location, obj, find_held_objects =\
+                    False).is_held == False, "Verifying put down works"
 
     # if not holding anything
     elif agent.holding is None:
