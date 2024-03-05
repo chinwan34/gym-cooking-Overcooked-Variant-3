@@ -94,7 +94,7 @@ def roleAssignmentAlgorithm(typeUsed, num_agents):
         return [ExceptionalChefMerger(), FryingWaiter()]
     elif typeUsed == "three":
         if num_agents == 2:
-            return [ExceptionalChefMerger(), CookingMergingWaiter()]
+            return [ExceptionalChefMerger(), FryingMergingWaiter()]
         elif num_agents == 3:
             return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
 
