@@ -91,7 +91,7 @@ def roleAssignmentAlgorithm(typeUsed, num_agents):
     elif typeUsed == "none":
         return [InvincibleWaiter(), InvincibleWaiter()]
     elif typeUsed == "unbalanced":
-        return [ChoppingWaiter(), ExceptionalChefMerger()]
+        return [ExceptionalChefMerger(), FryingWaiter()]
     elif typeUsed == "three":
         if num_agents == 2:
             return [ExceptionalChefMerger(), CookingMergingWaiter()]
@@ -143,6 +143,7 @@ def initialize_agents(arglist):
                     real_agents.append(real_agent)
                     if len(real_agents) >= arglist.num_agents:
                         finished = True
+                    index+=1
     return real_agents
 
 def main_loop(arglist):

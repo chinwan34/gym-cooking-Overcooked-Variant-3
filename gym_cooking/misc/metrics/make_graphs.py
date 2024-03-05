@@ -17,6 +17,7 @@ recipes = [
         "chicken",
         "salad",
         "burger",
+        "CF",
     ]
 total_num_subtasks = {
         "tomato": 3,
@@ -24,6 +25,7 @@ total_num_subtasks = {
         "salad": 5,
         "chicken": 7,
         "burger": 6,
+        "CF": 6,
     }
 models = [
        "_model1-bd_model2-bd",
@@ -65,7 +67,7 @@ agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28},
+    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28, "CF":25},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
