@@ -74,7 +74,8 @@ agents2_optimal = {
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
     "partial-divider": {"tomato": 12, "tl": 22, "salad": 16},
-    "full-divider": {"tomato": 13, "tl": 24, "salad": 19}
+    "full-divider": {"tomato": 13, "tl": 24, "salad": 19},
+    "new-open": {"tomato": 18}
 }
 time_steps_optimal = {2: agents2_optimal, 3: agents3_optimal}
 
@@ -268,7 +269,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
 
             if key == 'completion':
                 # plot ours last
-                hue_order = hue_order[1:] + [hue_order[0]]
+                # hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
                 # ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
                 #     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
@@ -278,7 +279,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                 plt.ylim([0, 1]),
                 plt.xlim([0, 50])
             else:
-                hue_order = hue_order[1:] + [hue_order[0]]
+                # hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
                 # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order,\
                 #                 palette=color_palette, ci=68).set(
