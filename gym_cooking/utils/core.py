@@ -53,11 +53,6 @@ class Cleaner(Role):
     def __init__(self):
         self.probableActions = [Get, Clean]
         self.name = "Cleaner"
-
-class WaiterDeliverer(Role):
-    def __init__(self):
-        self.probableActions = [Merger, Deliver]
-        self.name = "WaiterDeliverer"
     
 class MergingWaiter(Role):
     def __init__(self):

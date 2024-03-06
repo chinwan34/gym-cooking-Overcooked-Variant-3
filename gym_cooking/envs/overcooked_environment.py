@@ -204,7 +204,7 @@ class OvercookedEnvironment(gym.Env):
             if num_agents == 2:
                 return [ExceptionalChefMerger(), FryingMergingWaiter()]
             elif num_agents == 3:
-                return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
+                return [ChoppingWaiter(), Merger(), MergingWaiter()]
 
     def reset(self):
         self.world = World(arglist=self.arglist)
