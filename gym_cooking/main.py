@@ -87,11 +87,11 @@ def findSuitableRoles(actionsNotSatisfied, num_agents):
     
 def roleAssignmentAlgorithm(typeUsed, num_agents):
     if typeUsed == "extreme":
-        return [InvincibleWaiter(), IdlePerson()]
+        return [IdlePerson(), InvincibleWaiter()]
     elif typeUsed == "none":
         return [InvincibleWaiter(), InvincibleWaiter()]
     elif typeUsed == "unbalanced":
-        return [ExceptionalChefMerger(), FryingWaiter()]
+        return [Chopper(), InvincibleWaiter()]
     elif typeUsed == "three":
         if num_agents == 2:
             return [ExceptionalChefMerger(), FryingMergingWaiter()]

@@ -60,6 +60,7 @@ maps = [
         "open-divider",
         "partial-divider",
         "very-easy",
+        "new-open",
         ]
 seeds = range(1,10)
 agents = ['agent-1', 'agent-2', 'agent-3', 'agent-4']
@@ -68,6 +69,7 @@ agents2_optimal = {
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28, "CF":25},
+    "new-open": {"tomato": 20, "salad": 25, "burger": 30, "CF": 30},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
