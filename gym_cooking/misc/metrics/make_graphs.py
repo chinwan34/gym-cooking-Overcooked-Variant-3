@@ -279,7 +279,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
                 plt.xlabel('Steps')
                 plt.ylim([0, 1]),
-                plt.xlim([0, 50])
+                plt.xlim([0, 75])
             else:
                 # hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
@@ -329,7 +329,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                 # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
                 #     xlabel = "", xticks = [], ylim = [0, 1000])
                 sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
-                    xlabel = "", xticks = [], ylim = [0, 50])
+                    xlabel = "", xticks = [], ylim = [0, 75])
             legend = plt.legend(frameon=False)
             legend_fig = legend.figure
             legend_fig.canvas.draw()
