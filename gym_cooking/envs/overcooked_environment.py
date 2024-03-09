@@ -195,11 +195,11 @@ class OvercookedEnvironment(gym.Env):
     
     def roleAssignmentAlgorithm(self, typeUsed, num_agents):
         if typeUsed == "extreme":
-            return [IdlePerson(), InvincibleWaiter()]
+            return [InvincibleWaiter(), IdlePerson()]
         elif typeUsed == "none":
             return [InvincibleWaiter(), InvincibleWaiter()]
         elif typeUsed == "unbalanced":
-            return [Chopper(), InvincibleWaiter()]
+            return [InvincibleWaiter(), Chopper()]
         elif typeUsed == "three":
             if num_agents == 2:
                 return [ChoppingWaiter(), ExceptionalChefMerger()]

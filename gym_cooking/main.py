@@ -91,7 +91,7 @@ def roleAssignmentAlgorithm(typeUsed, num_agents):
     elif typeUsed == "none":
         return [InvincibleWaiter(), InvincibleWaiter()]
     elif typeUsed == "unbalanced":
-        return [Chopper(), InvincibleWaiter()]
+        return [InvincibleWaiter(), Chopper()]
     elif typeUsed == "three":
         if num_agents == 2:
             return [ChoppingWaiter(), ExceptionalChefMerger()]
