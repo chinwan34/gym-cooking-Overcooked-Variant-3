@@ -214,6 +214,9 @@ class RealAgent:
                 nextLoc = env.nextLocationBase(a, self.location)
                 if isinstance(nextLoc, Floor):
                     actionThatWorks.append(a)
+                elif not isinstance(nextLoc, Floor) and self.holding:
+                    actionThatWorks.append(a)
+
             stay = True
             for a in actions:
                 if env.is_occupied_location(a, self.location):
