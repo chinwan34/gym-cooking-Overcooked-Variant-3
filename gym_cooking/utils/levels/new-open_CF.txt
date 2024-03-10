@@ -1,0 +1,13 @@
+-p-f--
+-    !
+*    -
+!    -
+k    -
+----p-
+
+FriedChickenRe
+FriedFishRe
+
+4 1
+1 3
+

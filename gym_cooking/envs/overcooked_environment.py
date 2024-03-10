@@ -202,7 +202,7 @@ class OvercookedEnvironment(gym.Env):
             return [FryingWaiter(), ExceptionalChefMerger()]
         elif typeUsed == "three":
             if num_agents == 2:
-                return [ChoppingMerger(), MergingWaiter()]
+                return [ExceptionalChefMerger(), FryingMergingWaiter()]
             elif num_agents == 3:
                 return [ChoppingWaiter(), ExceptionalChefMerger(), MergingWaiter()]
 
