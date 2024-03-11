@@ -199,12 +199,12 @@ class OvercookedEnvironment(gym.Env):
         elif typeUsed == "none":
             return [InvincibleWaiter(), InvincibleWaiter()]
         elif typeUsed == "unbalanced":
-            return [ChoppingWaiter(), ExceptionalChefMerger()]
+            return [CookingWaiter(), ExceptionalChefMerger()]
         elif typeUsed == "three":
             if num_agents == 2:
                 return [ExceptionalChefMerger(), CookingMergingWaiter()]
             elif num_agents == 3:
-                return [ChoppingWaiter(), Chopper(), WaiterDeliverer()]
+                return [ChoppingWaiter(), ExceptionalChefMerger(), MergingWaiter()]
 
     def reset(self):
         self.world = World(arglist=self.arglist)

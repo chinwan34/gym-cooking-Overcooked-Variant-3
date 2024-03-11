@@ -17,6 +17,7 @@ recipes = [
         "chicken",
         "salad",
         "burger",
+        "CF",
     ]
 total_num_subtasks = {
         "tomato": 3,
@@ -24,6 +25,7 @@ total_num_subtasks = {
         "salad": 5,
         "chicken": 7,
         "burger": 6,
+        "CF": 6,
     }
 models = [
        "_model1-bd_model2-bd",
@@ -58,6 +60,8 @@ maps = [
         "open-divider",
         "partial-divider",
         "very-easy",
+        "new-open",
+        "new-partial"
         ]
 seeds = range(1,10)
 agents = ['agent-1', 'agent-2', 'agent-3', 'agent-4']
@@ -65,12 +69,15 @@ agents2_optimal = {
     "open-divider": {"tomato": 15, "tl": 25, "salad": 24},
     "partial-divider": {"tomato": 17, "tl": 31, "salad": 21},
     "full-divider": {"tomato": 17, "tl": 31, "salad": 21},
-    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28},
+    "very-easy": {"chicken": 40, "salad": 25, "tomato": 21, "burger": 28, "CF":25},
+    "new-open": {"tomato": 20, "salad": 25, "burger": 35, "CF": 30},
+    "new-partial": {"tomato": 20, "salad": 25, "burger": 35, "CF": 30},
 }
 agents3_optimal = {
     "open-divider": {"tomato": 12, "tl": 22, "salad": 15},
     "partial-divider": {"tomato": 12, "tl": 22, "salad": 16},
-    "full-divider": {"tomato": 13, "tl": 24, "salad": 19}
+    "full-divider": {"tomato": 13, "tl": 24, "salad": 19},
+    "new-open": {"tomato": 18}
 }
 time_steps_optimal = {2: agents2_optimal, 3: agents3_optimal}
 
@@ -264,7 +271,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
 
             if key == 'completion':
                 # plot ours last
-                hue_order = hue_order[1:] + [hue_order[0]]
+                # hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
                 # ax = sns.lineplot(x = 't', y = 'n', hue="model", data=data,
                 #     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
@@ -272,9 +279,9 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                     linewidth=5, legend=False, hue_order=hue_order, palette=color_palette)
                 plt.xlabel('Steps')
                 plt.ylim([0, 1]),
-                plt.xlim([0, 50])
+                plt.xlim([0, 75])
             else:
-                hue_order = hue_order[1:] + [hue_order[0]]
+                # hue_order = hue_order[1:] + [hue_order[0]]
                 color_palette = sns.color_palette()[1:5] + [sns.color_palette()[0]]
                 # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order,\
                 #                 palette=color_palette, ci=68).set(
@@ -322,7 +329,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
                 # sns.barplot(x='dummy', y=key, hue="model", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
                 #     xlabel = "", xticks = [], ylim = [0, 1000])
                 sns.barplot(x='dummy', y=key, hue="role", data=data, hue_order=hue_order, palette=color_palette, ci=68).set(
-                    xlabel = "", xticks = [], ylim = [0, 50])
+                    xlabel = "", xticks = [], ylim = [0, 75])
             legend = plt.legend(frameon=False)
             legend_fig = legend.figure
             legend_fig.canvas.draw()

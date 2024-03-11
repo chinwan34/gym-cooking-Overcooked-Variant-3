@@ -554,16 +554,6 @@ class E2E_BRTDP:
         if (B > diff):
             print('exploring, B: {}, diff: {}'.format(B, diff))
             self.main()
-        # else: 
-        #     print("MOTHERFUCKER I GOT HERERERERERERERERERER")
-        #     possibleActions = [(0,1), (0,-1), (1,0), (-1,0)]
-        #     self.cur_state = cur_state
-        #     for possibleMove in possibleActions:
-        #         agent_next_loc = tuple(np.asarray(self.cur_state) + np.asarray(possibleMove))
-        #         print("HEYHEYHEY", self.world.get_gridsquare_at(location=agent_next_loc))
-        #         if isinstance(self.world.get_gridsquare_at(location=agent_next_loc), Floor):
-        #             return possibleMove
-        #     return (0,0)
 
         # Determine best action after BRTDP.
         if self.is_goal_state(cur_state.get_repr()):
