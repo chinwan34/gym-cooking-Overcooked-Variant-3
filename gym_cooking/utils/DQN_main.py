@@ -7,17 +7,27 @@ class mainAlgorithm:
         self.environment = environment
         self.num_training = num_training
         self.max_timestep = max_timestep
+        self.filling_step = 15
+        self.replay_step = 15
 
     def run(self, agents):
-        for episodes in range(self.num_training):
+        all_step = 0
+        rewards = []
+        time_steps = []
+        maxScore = 0
+        for episode in range(self.num_training):
             state = self.environment.reset()
             
+            # May not be needed
+            # state = np.array(state)
+            # state = state.ravel()
         
             done = False
             step = 0
-            action_dict = []
+            rewardTotal = 0
 
             while not done and step < self.max_timestep:
+                action_dict = []
                 for agent in agents:
                     action_dict.append(agent.epsilon_greedy(state))
                 
@@ -27,4 +37,28 @@ class mainAlgorithm:
 
                 for agent in agents:
                     agent.observeTransition((state, action_dict, reward, next_state, done))
-                    
+                    if all_step >= self.filling_step:
+                        agent.epsilon_decay()
+                        if step % self.replay_step == 0:
+                            agent.replay()
+                        
+                all_step += 1
+                step += 1
+                state = next_state
+                rewardTotal += reward
+
+                # Render here maybe
+            
+            rewards.append(rewardTotal)
+            time_steps.append(step)
+
+            if episode % 100 == 0:
+                if all_step >= self.replay_step:
+                    if rewardTotal > maxScore:
+                        for agent in agents:
+                            
+                        maxScore = rewardTotal
+
+            print("Score:{s} with Steps:{t}, Goal:{g}".format(s=rewardTotal, t=step, g=done))
+
+

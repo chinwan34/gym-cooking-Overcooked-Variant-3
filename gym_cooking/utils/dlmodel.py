@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Dense, Input
 from tensorflow.python.keras.optimizers import *
+import numpy as np
 
 class DLModel:
     def __init__(self, state_sizes, action_sizes, name, arglist):
@@ -33,5 +34,8 @@ class DLModel:
         else:
             return self.targetModel.predict(state)
     
+    def max_Q_action(self, state):
+        actions = self.predict(state.reshape(1, self.state_sizes))
+        return np.argmax((actions.flatten()))
 
         

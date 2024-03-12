@@ -27,6 +27,8 @@ class DQNAgent:
         value = random.randint(0, 1)
         if value < self.epsilon:
             return 
+        else:
+            return self.dlmodel.max_Q_action(state)
 
     def epsilon_decay(self):
         if self.epsilon > self.epsilon_minimum:
@@ -67,6 +69,9 @@ class DQNAgent:
 
     def replay(self):
         batch_used = self.memory.uniform_sample(self.batchSize)
+        x, y = self.y_i_update(batch_used)
+        self.dlmodel.train(x, y)
+    
 
     
 
