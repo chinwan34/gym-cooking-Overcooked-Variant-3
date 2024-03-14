@@ -16,6 +16,8 @@ class DQNAgent:
         self.epsilon_minimum = 0
         self.maxCapacity = arglist["maxCapacity"]
         self.batchSize = arglist["batch_size"]
+        self.frequency = arglist["update_frequency"]
+        self.current = 0
 
         self.memory = UER_memory(self.maxCapacity)
         self.dlmodel = DLModel(self,st_size, self.action_size, "DLModel", arglist)
@@ -31,6 +33,7 @@ class DQNAgent:
             return self.dlmodel.max_Q_action(state)
 
     def epsilon_decay(self):
+        self.current += 1
         if self.epsilon > self.epsilon_minimum:
             self.epsilon = self.epsilon * self.epsilon_decay_rate
     
@@ -66,7 +69,11 @@ class DQNAgent:
             errors[i] = np.abs(t[action] - oldVal)
         
         return [x, y, errors]
-
+    
+    def update_target(self):
+        if self.current % self.frequency == 0:
+            self.dlmodel.update_target()
+    
     def replay(self):
         batch_used = self.memory.uniform_sample(self.batchSize)
         x, y = self.y_i_update(batch_used)

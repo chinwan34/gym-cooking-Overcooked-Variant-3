@@ -4,6 +4,7 @@ from recipe_planner.recipe import *
 from utils.world import World
 from utils.agent import RealAgent, SimAgent, COLORS
 from utils.core import *
+from utils.DQN_main import mainAlgorithm
 from misc.game.gameplay import GamePlay
 from misc.metrics.metrics_bag import Bag
 from random import randrange

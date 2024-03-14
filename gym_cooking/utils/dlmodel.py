@@ -38,4 +38,8 @@ class DLModel:
         actions = self.predict(state.reshape(1, self.state_sizes))
         return np.argmax((actions.flatten()))
 
-        
+    def save_model(self):
+        self.model.save(self.name)
+    
+    def update_target(self):
+        self.targetModel.set_weights(self.model.get_weights())

@@ -56,7 +56,7 @@ class mainAlgorithm:
                 if all_step >= self.replay_step:
                     if rewardTotal > maxScore:
                         for agent in agents:
-                            
+                            self.agent.dlmodel.save_model()               
                         maxScore = rewardTotal
 
             print("Score:{s} with Steps:{t}, Goal:{g}".format(s=rewardTotal, t=step, g=done))
