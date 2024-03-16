@@ -56,10 +56,9 @@ def parse_arguments():
     parser.add_argument("--maxCapacity", type=int, default=100000, help="Maximum capacity of memory")
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
     parser.add_argument("--update-frequency", type=int, default=1000, help='The frequency of updates on target model')
-    parser.add_argument("--max-timestep", type=int, default=100, help="Maximum number of steps of each episode of DQN")
     parser.add_argument("--replay", type=int, default=4, help="Steps difference for training")
     parser.add_argument("--number-training", default=1, type=int, help="Number of episodes for training")
-    parser.add_argument("--alpha", default=0.005, type=float, help="Learning rate of DQN")
+    parser.add_argument("--learning-rate", default=0.005, type=float, help="Learning rate of DQN")
 
 
     return parser.parse_args()

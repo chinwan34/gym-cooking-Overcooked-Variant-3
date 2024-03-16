@@ -10,7 +10,7 @@ class DQNAgent:
         self.action_size = action_size
         self.color = color
         self.role = role
-        self.alpha = arglist.alpha
+        self.alpha = arglist.learning_rate
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_decay_rate = 0.98

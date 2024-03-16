@@ -7,7 +7,7 @@ class mainAlgorithm:
         self.arglist = arglist
         self.environment = environment
         self.num_training = self.arglist.number_training
-        self.max_timestep = self.arglist.max_timestep
+        self.max_timestep = self.arglist.max_num_timesteps
         self.filling_step = 15
         self.replay_step = self.arglist.replay
 
@@ -28,11 +28,12 @@ class mainAlgorithm:
             rewardTotal = 0
 
             while not done and step < self.max_timestep:
-                action_dict = []
+                action_dict = {}
                 for agent in agents:
-                    action_dict.append(agent.epsilon_greedy(state))
+                    action = agent.epsilon_greedy(state)
+                    action_dict[agent.name] = action
                 
-                next_state, reward, done, info = self.environment.step(action_dict)
+                next_state, reward, done, info = self.environment.dqn_step(action_dict)
                 next_state = np.array(next_state)
                 # next_state = next_state.ravel()
 

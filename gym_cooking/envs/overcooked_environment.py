@@ -285,6 +285,39 @@ class OvercookedEnvironment(gym.Env):
                 "done": done, "termination_info": self.termination_info}
         return new_obs, reward, done, info
 
+    def dqn_step(self, action_dict):
+        self.t += 1
+        print("===============================")
+        print("[environment.step] @ TIMESTEP {}".format(self.t))
+        print("===============================")
+
+        # Choose actions, may not to fix sim_agents representation
+        for sim_agent in self.sim_agents:
+            sim_agent.action = action_dict[sim_agent.name]
+        
+        # Execute.
+        self.execute_navigation()
+
+        # May need to Visualize and store model
+        new_obs = copy.copy(self)
+
+        # States, rewards, done
+        done = self.done()
+        reward = self.dqn_reward()
+        self.display()
+        next_state = self.rep
+
+        info = {
+            "t": self.t,
+            "obs": new_obs,
+            "done": done, "termination_info": self.termination_info
+        }
+
+        return next_state, reward, done, info
+
+
+
+
 
     def done(self):
         # Done if the episode maxes out
@@ -315,6 +348,9 @@ class OvercookedEnvironment(gym.Env):
 
     def reward(self):
         return 1 if self.successful else 0
+
+    def dqn_reward(self):
+        pass
 
     def print_agents(self):
         for sim_agent in self.sim_agents:
