@@ -229,6 +229,7 @@ class OvercookedEnvironment(gym.Env):
                 num_agents=self.arglist.num_agents)
         print("On env.reset location")
         self.all_subtasks = self.run_recipes()
+        self.subtasks_left = self.all_subtasks
         self.world.make_loc_to_gridsquare()
         self.world.make_reachability_graph()
         self.cache_distances()
@@ -315,9 +316,42 @@ class OvercookedEnvironment(gym.Env):
 
         return next_state, reward, done, info
 
+    def subtask_reduction(self):
+        delete = []
+        for subtask in self.subtasks_left:
+            _, goal_obj = nav_utils.get_subtask_obj(subtask)
+            goal_obj_locs = self.world.get_all_object_locs(obj=goal_obj)
+            if len(goal_obj_locs) != 0:
+                delete.append(subtask)
+        
+        if len(delete) > 0:
+            self.subtasks_left.remove(delete[0])     
+            return True
+        return False  
+    
+    def single_subtask_reduction(self, subtask):
+        doneCheck = False
+        _, goal_obj = nav_utils.get_subtask_obj(subtask)
+        goal_obj_locs = self.world.get_all_object_locs(obj=goal_obj)
+        delivery_loc = list(filter(lambda o: o.name=='Delivery', self.world.get_object_list()))[0].location
+        if isinstance(subtask, recipe.Deliver):
+             if any([gol == delivery_loc for gol in goal_obj_locs]):
+                 doneCheck = True
+                 return True, doneCheck
+        elif len(goal_obj_locs) != 0:
+            return True, doneCheck
+        return False, doneCheck
 
-
-
+    def holding_important_object(self, subtask_agent_names, subtask):
+        bonus = 0
+        start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+        for agent in self.sim_agents:
+            if agent.name in subtask_agent_names:
+                if agent.holding == start_obj:
+                    bonus += 1
+                elif agent.holding == goal_obj:
+                    bonus += 5
+        return bonus
 
     def done(self):
         # Done if the episode maxes out
@@ -350,7 +384,27 @@ class OvercookedEnvironment(gym.Env):
         return 1 if self.successful else 0
 
     def dqn_reward(self):
-        pass
+        reward = 0
+        for subtask in self.subtasks_left:
+            finishedSubtask, doneCheck = self.single_subtask_reduction(subtask)
+            if finishedSubtask:
+                reward += 20
+                if doneCheck: reward += 100
+            start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+            subtask_action_obj = nav_utils.get_subtask_action_obj(subtask)
+            distance = self.get_lower_bound_for_subtask_given_objs(
+                subtask, 
+                ["agent-1", "agent-2"],
+                start_obj,
+                goal_obj,
+                subtask_action_obj,
+            )
+            reward -= distance
+
+            bonus = self.holding_import_object(["agent-1", "agent-2"], subtask)
+            reward += bonus
+
+        return reward
 
     def print_agents(self):
         for sim_agent in self.sim_agents:
