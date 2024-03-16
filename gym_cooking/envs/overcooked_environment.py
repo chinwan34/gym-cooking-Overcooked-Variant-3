@@ -352,6 +352,21 @@ class OvercookedEnvironment(gym.Env):
                 elif agent.holding == goal_obj:
                     bonus += 5
         return bonus
+    
+    def role_bonus(self, subtask_agent_names, subtask):
+        bonus = 0
+        start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+        for agent in self.sim_agents:
+            if agent.name in subtask_agent_names:
+                if any([isinstance(subtask, action) for action in agent.role.probableActions]):
+                    if agent.holding == start_obj: bonus += 2
+                    if agent.holding == goal_obj: bonus += 5
+                else:
+                    if agent.holding == start_obj: bonus -= 2
+                    if agent.holding == goal_obj: bonus -= 5
+        
+        return bonus
+
 
     def done(self):
         # Done if the episode maxes out
@@ -402,8 +417,9 @@ class OvercookedEnvironment(gym.Env):
             reward -= distance
 
             bonus = self.holding_import_object(["agent-1", "agent-2"], subtask)
-            reward += bonus
-
+            bonus2 = self.role_bonus(["agent-1", "agent-2"], subtask)
+            reward = reward + bonus + bonus2
+        
         return reward
 
     def print_agents(self):
@@ -434,6 +450,7 @@ class OvercookedEnvironment(gym.Env):
         subtasks = self.sw.get_subtasks(max_path_length=self.arglist.max_num_subtasks)
         all_subtasks = [subtask for path in subtasks for subtask in path]
         print('Subtasks:', all_subtasks, '\n')
+        print(type(all_subtasks[0]))
         return all_subtasks
 
     def get_AB_locs_given_objs(self, subtask, subtask_agent_names, start_obj, goal_obj, subtask_action_obj):

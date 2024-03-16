@@ -95,6 +95,7 @@ class STRIPSWorld:
             # print('all tasks for recipe {}: {}\n'.format(recipe, ', '.join([str(a) for a in union_action_path])))
             action_paths.append(union_action_path)
 
+        print(action_paths)
         return action_paths
         
 
