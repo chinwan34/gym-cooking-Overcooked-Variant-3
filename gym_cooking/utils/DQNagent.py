@@ -4,19 +4,20 @@ import numpy as np
 from utils.dlmodel import *
 
 class DQNAgent:
-    def __init__(self, st_size, action_size, name, role, arglist, gamma=0.95, alpha=0.2, epsilon=0.05):
+    def __init__(self, arglist, st_size, action_size, name, color, role, gamma=0.95, epsilon=0.05):
         self.name = name
         self.st_size = st_size
         self.action_size = action_size
+        self.color = color
         self.role = role
-        self.alpha = alpha
+        self.alpha = arglist.alpha
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_decay_rate = 0.98
         self.epsilon_minimum = 0
-        self.maxCapacity = arglist["maxCapacity"]
-        self.batchSize = arglist["batch_size"]
-        self.frequency = arglist["update_frequency"]
+        self.maxCapacity = arglist.maxCapacity
+        self.batchSize = arglist.batch_size
+        self.frequency = arglist.update_frequency
         self.current = 0
 
         self.memory = UER_memory(self.maxCapacity)

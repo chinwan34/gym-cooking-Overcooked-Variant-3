@@ -7,6 +7,7 @@ from utils.core import *
 from utils.DQN_main import mainAlgorithm
 from misc.game.gameplay import GamePlay
 from misc.metrics.metrics_bag import Bag
+from utils.DQNagent import *
 from random import randrange
 
 import numpy as np
@@ -49,6 +50,17 @@ def parse_arguments():
     parser.add_argument("--model2", type=str, default=None, help="Model type for agent 2 (bd, up, dc, fb, or greedy)")
     parser.add_argument("--model3", type=str, default=None, help="Model type for agent 3 (bd, up, dc, fb, or greedy)")
     parser.add_argument("--model4", type=str, default=None, help="Model type for agent 4 (bd, up, dc, fb, or greedy)")
+
+    # Arguments for DQN Learning
+    parser.add_argument("--dqn", action="store_true", default=False, help="Use DQN to train the agents")
+    parser.add_argument("--maxCapacity", type=int, default=100000, help="Maximum capacity of memory")
+    parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
+    parser.add_argument("--update-frequency", type=int, default=1000, help='The frequency of updates on target model')
+    parser.add_argument("--max-timestep", type=int, default=100, help="Maximum number of steps of each episode of DQN")
+    parser.add_argument("--replay", type=int, default=4, help="Steps difference for training")
+    parser.add_argument("--number-training", default=1, type=int, help="Number of episodes for training")
+    parser.add_argument("--alpha", default=0.005, type=float, help="Learning rate of DQN")
+
 
     return parser.parse_args()
 
@@ -180,6 +192,32 @@ def main_loop(arglist):
     bag.set_termination(termination_info=env.termination_info,
             successful=env.successful)
 
+def dqn_main(arglist):
+    """
+    The main DQN Loop.
+    """
+    print("Initializing environment and agents.")
+    env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
+    obs = env.reset()
+
+    dqnClass = mainAlgorithm(env, arglist)
+    dqn_agents = []
+    role_list = []
+
+    for i in range(arglist.num_agents):
+        dqn_agents.append(DQNAgent(
+            arglist,
+            env.state_size, 
+            env.action_size, 
+            name='agent-'+str(len(dqn_agents)+1), 
+            id_color=COLORS[len(dqn_agents)],
+            role=role_list[i], 
+            )
+        )
+
+    dqnClass.run(dqn_agents)
+
+
 if __name__ == '__main__':
     arglist = parse_arguments()
     if arglist.play:
@@ -187,6 +225,8 @@ if __name__ == '__main__':
         env.reset()
         game = GamePlay(env.filename, env.world, env.sim_agents)
         game.on_execute()
+    elif arglist.dqn:
+        dqn_main(arglist)
     else:
         model_types = [arglist.model1, arglist.model2, arglist.model3, arglist.model4]
         assert len(list(filter(lambda x: x is not None,

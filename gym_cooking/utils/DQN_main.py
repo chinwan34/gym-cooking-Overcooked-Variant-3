@@ -3,12 +3,13 @@ import random
 from utils.DQNagent import DQNAgent
 
 class mainAlgorithm:
-    def __init__(self, environment, num_training, max_timestep):
+    def __init__(self, environment, arglist):
+        self.arglist = arglist
         self.environment = environment
-        self.num_training = num_training
-        self.max_timestep = max_timestep
+        self.num_training = self.arglist.number_training
+        self.max_timestep = self.arglist.max_timestep
         self.filling_step = 15
-        self.replay_step = 15
+        self.replay_step = self.arglist.replay
 
     def run(self, agents):
         all_step = 0
