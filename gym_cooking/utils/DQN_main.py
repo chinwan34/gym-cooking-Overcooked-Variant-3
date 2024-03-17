@@ -67,7 +67,7 @@ class mainAlgorithm:
 
     def predict_game(self, agents):
         for agent in agents:
-            agent.load_model()
+            agent.load_model_trained()
         
         state = self.environment.reset()
 

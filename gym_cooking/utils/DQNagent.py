@@ -4,7 +4,7 @@ import numpy as np
 from utils.dlmodel import *
 
 class DQNAgent:
-    def __init__(self, arglist, st_size, action_size, name, color, role, gamma=0.95, epsilon=0.05):
+    def __init__(self, arglist, st_size, action_size, name, color, role, agent_index, gamma=0.95, epsilon=0.05):
         self.name = name
         self.st_size = st_size
         self.action_size = action_size
@@ -15,6 +15,7 @@ class DQNAgent:
         self.epsilon = epsilon
         self.epsilon_decay_rate = 0.98
         self.epsilon_minimum = 0
+        self.agent_index = agent_index
         self.maxCapacity = arglist.maxCapacity
         self.batchSize = arglist.batch_size
         self.frequency = arglist.update_frequency
@@ -29,10 +30,8 @@ class DQNAgent:
         """
         value = random.randint(0, 1)
         if value < self.epsilon:
-            return random.choice([(0,1), (0,-1), (1,0), (-1,0)])
+            return random.choice([0, 1, 2, 3])
         else:
-            print("Got here")
-            print("action", self.dlmodel.max_Q_action(state))
             return self.dlmodel.max_Q_action(state)
 
     def epsilon_decay(self):
@@ -55,22 +54,22 @@ class DQNAgent:
         errors = np.zeros(len(batch_used))
 
         for i in range(len(batch_used)):
-            cState = batch_used[0]
-            action = batch_used[1]
-            reward = batch_used[2]
-            done = batch_used[4]
+            cState = batch_used[i][0]
+            actionSelected = batch_used[i][1][self.name]
+            reward = batch_used[i][2]
+            done = batch_used[i][4]
 
             t = predict_current[i]
-            oldVal = t[action]
+            oldVal = t[actionSelected]
             if done:
-                t[action] = reward
+                t[actionSelected] = reward
             else:
-                t[action] = reward + self.gamma * np.max(predict_next_target[i])
+                t[actionSelected] = reward + self.gamma * np.max(predict_next_target[i])
         
             x[i] = cState
             y[i] = t
-            errors[i] = np.abs(t[action] - oldVal)
-        
+            errors[i] = np.abs(t[actionSelected] - oldVal)
+
         return [x, y, errors]
     
     def update_target(self):
@@ -79,7 +78,7 @@ class DQNAgent:
     
     def replay(self):
         batch_used = self.memory.uniform_sample(self.batchSize)
-        x, y = self.y_i_update(batch_used)
+        x, y, errors = self.y_i_update(batch_used)
         self.dlmodel.train_model(x, y)
     
     def set_alpha_and_epsilon(self):
