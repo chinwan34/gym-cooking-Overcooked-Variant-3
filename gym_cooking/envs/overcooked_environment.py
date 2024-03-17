@@ -253,7 +253,7 @@ class OvercookedEnvironment(gym.Env):
             return self.repDQN
 
     def world_size_action_size(self):
-        return len(self.rep), 5
+        return len(self.repDQN), 4
 
     def close(self):
         return
@@ -301,10 +301,14 @@ class OvercookedEnvironment(gym.Env):
         print("===============================")
 
         # Choose actions, may not to fix sim_agents representation
+        print(action_dict)
+
+        actions_available = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         for sim_agent in self.sim_agents:
-            sim_agent.action = action_dict[sim_agent.name]
-        
-        self.check_collisions()
+            if not isinstance(action_dict[sim_agent.name], tuple):
+                sim_agent.action = actions_available[action_dict[sim_agent.name]]
+            else:
+                sim_agent.action = action_dict[sim_agent.name]
         
         # Execute.
         self.execute_navigation()
@@ -435,7 +439,7 @@ class OvercookedEnvironment(gym.Env):
             )
             reward -= distance
 
-            bonus = self.holding_import_object(["agent-1", "agent-2"], subtask)
+            bonus = self.holding_important_object(["agent-1", "agent-2"], subtask)
             bonus2 = self.role_bonus(["agent-1", "agent-2"], subtask)
             reward = reward + bonus + bonus2
         

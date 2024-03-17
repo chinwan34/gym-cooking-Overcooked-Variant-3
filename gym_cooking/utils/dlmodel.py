@@ -13,6 +13,7 @@ class DLModel:
         self.num_nodes = arglist.num_nodes
         self.model = self.build_and_compile_model()
         self.targetModel = self.build_and_compile_model()
+        self.actions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     
     def build_and_compile_model(self):
         x = Input(shape=(self.state_sizes,))
@@ -37,6 +38,7 @@ class DLModel:
     def max_Q_action(self, state, target=False):
         # actions = self.predict(state.reshape(1, self.state_sizes))
         actions = self.predict(state.reshape(1, self.state_sizes), target=target)
+        
         return np.argmax((actions.flatten()))
 
     def save_model(self):

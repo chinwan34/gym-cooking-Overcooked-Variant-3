@@ -32,6 +32,7 @@ class DQNAgent:
             return random.choice([(0,1), (0,-1), (1,0), (-1,0)])
         else:
             print("Got here")
+            print("action", self.dlmodel.max_Q_action(state))
             return self.dlmodel.max_Q_action(state)
 
     def epsilon_decay(self):
