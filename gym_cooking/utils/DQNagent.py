@@ -80,7 +80,15 @@ class DQNAgent:
         x, y = self.y_i_update(batch_used)
         self.dlmodel.train(x, y)
     
-
+    def set_alpha_and_epsilon(self):
+        self.alpha = 0
+        self.epsilon = 0
+    
+    def predict(self, state):
+        return self.dlmodel.max_Q_action(state)
+    
+    def load_model_trained(self):
+        return self.dlmodel.load_model_trained()
     
 
 

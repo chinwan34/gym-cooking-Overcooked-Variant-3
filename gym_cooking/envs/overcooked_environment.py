@@ -244,8 +244,12 @@ class OvercookedEnvironment(gym.Env):
             self.game.on_init()
             if self.arglist.record:
                 self.game.save_image_obs(self.t)
+        if not self.arglist.dqn:
+            return copy.copy(self)
+        else:
+            self.update_display()
+            return self.rep
 
-        return copy.copy(self)
 
     def close(self):
         return
@@ -305,6 +309,7 @@ class OvercookedEnvironment(gym.Env):
         # States, rewards, done
         done = self.done()
         reward = self.dqn_reward()
+        self.subtask_reduction()
         self.display()
         next_state = self.rep
 
@@ -321,7 +326,11 @@ class OvercookedEnvironment(gym.Env):
         for subtask in self.subtasks_left:
             _, goal_obj = nav_utils.get_subtask_obj(subtask)
             goal_obj_locs = self.world.get_all_object_locs(obj=goal_obj)
-            if len(goal_obj_locs) != 0:
+            delivery_loc = list(filter(lambda o: o.name=='Delivery', self.world.get_object_list()))[0].location
+            if isinstance(subtask, recipe.Deliver):
+                if any([gol == delivery_loc for gol in goal_obj_locs]):
+                    delete.append(subtask)
+            elif len(goal_obj_locs) != 0:
                 delete.append(subtask)
         
         if len(delete) > 0:
@@ -399,6 +408,9 @@ class OvercookedEnvironment(gym.Env):
         return 1 if self.successful else 0
 
     def dqn_reward(self):
+        """
+        I wrote this.
+        """
         reward = 0
         for subtask in self.subtasks_left:
             finishedSubtask, doneCheck = self.single_subtask_reduction(subtask)

@@ -59,6 +59,7 @@ def parse_arguments():
     parser.add_argument("--replay", type=int, default=4, help="Steps difference for training")
     parser.add_argument("--number-training", default=1, type=int, help="Number of episodes for training")
     parser.add_argument("--learning-rate", default=0.005, type=float, help="Learning rate of DQN")
+    parser.add_argument("--game-play", default=2, type=int, help="Number of game play")
 
 
     return parser.parse_args()
@@ -215,7 +216,18 @@ def dqn_main(arglist):
         )
 
     dqnClass.run(dqn_agents)
-
+    dones = []
+    rewards = []
+    time_steps = []
+    for i in range(arglist.game_play):
+        (done, reward, step) = dqnClass.predict_game(dqn_agents)
+        dones.append(done)
+        rewards.append(reward)
+        time_steps.append(step)
+    
+    print("Average score: ", sum(rewards)/len(rewards))
+    print("Success Rate: ", dones.count(True)/len(dones))
+    print("Average Time-step", sum(time_steps)/len(time_steps))
 
 if __name__ == '__main__':
     arglist = parse_arguments()

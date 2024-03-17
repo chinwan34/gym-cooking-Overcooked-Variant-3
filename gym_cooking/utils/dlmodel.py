@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.models import Model, load_model
 from tensorflow.python.keras.layers import Dense, Input
 from tensorflow.python.keras.optimizers import *
 import numpy as np
@@ -40,6 +40,9 @@ class DLModel:
 
     def save_model(self):
         self.model.save(self.name)
+    
+    def load_model_trained(self):
+        self.model = load_model(self.name)
     
     def update_target(self):
         self.targetModel.set_weights(self.model.get_weights())
