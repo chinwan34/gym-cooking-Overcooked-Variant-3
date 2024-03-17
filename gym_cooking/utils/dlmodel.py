@@ -9,13 +9,13 @@ class DLModel:
         self.state_sizes = state_sizes
         self.action_sizes = action_sizes
         self.name = name
-        self.alpha = arglist["alpha"]
-        self.num_nodes = arglist["num_nodes"]
+        self.alpha = arglist.learning_rate
+        self.num_nodes = arglist.num_nodes
         self.model = self.build_and_compile_model()
         self.targetModel = self.build_and_compile_model()
     
     def build_and_compile_model(self):
-        x = Input(shape=(self.state_sizes))
+        x = Input(shape=(self.state_sizes,))
         x1 = Dense(self.num_nodes, activation='relu')(x)
         x2 = Dense(self.num_nodes, activation='relu')(x1)    
         z =  Dense(self.action_sizes, activation='linear')(x2)
@@ -34,8 +34,9 @@ class DLModel:
         else:
             return self.targetModel.predict(state)
     
-    def max_Q_action(self, state):
-        actions = self.predict(state.reshape(1, self.state_sizes))
+    def max_Q_action(self, state, target):
+        # actions = self.predict(state.reshape(1, self.state_sizes))
+        actions = self.predict(np.array(state).reshape(1, self.state_sizes), target=target)
         return np.argmax((actions.flatten()))
 
     def save_model(self):

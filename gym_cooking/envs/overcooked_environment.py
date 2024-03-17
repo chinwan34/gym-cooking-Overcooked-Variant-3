@@ -43,6 +43,7 @@ class OvercookedEnvironment(gym.Env):
 
         # For visualizing episode.
         self.rep = []
+        self.repDQN = []
 
         # For tracking data during an episode.
         self.collisions = []
@@ -215,6 +216,7 @@ class OvercookedEnvironment(gym.Env):
 
         # For visualizing episode.
         self.rep = []
+        self.repDQN = []
 
         # For tracking data during an episode.
         self.collisions = []
@@ -247,9 +249,11 @@ class OvercookedEnvironment(gym.Env):
         if not self.arglist.dqn:
             return copy.copy(self)
         else:
-            self.update_display()
-            return self.rep
+            self.update_display_DQN()
+            return self.repDQN
 
+    def world_size_action_size(self):
+        return len(self.rep), 5
 
     def close(self):
         return
@@ -310,8 +314,9 @@ class OvercookedEnvironment(gym.Env):
         done = self.done()
         reward = self.dqn_reward()
         self.subtask_reduction()
-        self.display()
-        next_state = self.rep
+        self.update_display_DQN()
+        self.update_display()
+        next_state = self.repDQN
 
         info = {
             "t": self.t,
@@ -448,6 +453,13 @@ class OvercookedEnvironment(gym.Env):
             x, y = agent.location
             self.rep[y][x] = str(agent)
 
+    def update_display_DQN(self):
+        self.repDQN = self.world.update_display_dqn()
+        for agent in self.sim_agents:
+            x, y = agent.location
+            # self.repDQN[x,y,3] = 1
+            self.repDQN.append(y)
+            self.repDQN.append(x)
 
     def get_agent_names(self):
         return [agent.name for agent in self.sim_agents]

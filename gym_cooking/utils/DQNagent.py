@@ -21,7 +21,7 @@ class DQNAgent:
         self.current = 0
 
         self.memory = UER_memory(self.maxCapacity)
-        self.dlmodel = DLModel(self,st_size, self.action_size, "DLModel", arglist)
+        self.dlmodel = DLModel(self.st_size, self.action_size, "DLModel", arglist)
     
     def epsilon_greedy(self, state):
         """
@@ -78,7 +78,7 @@ class DQNAgent:
     def replay(self):
         batch_used = self.memory.uniform_sample(self.batchSize)
         x, y = self.y_i_update(batch_used)
-        self.dlmodel.train(x, y)
+        self.dlmodel.train_model(x, y)
     
     def set_alpha_and_epsilon(self):
         self.alpha = 0

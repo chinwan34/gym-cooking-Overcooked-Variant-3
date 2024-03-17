@@ -18,6 +18,10 @@ class World:
 
     def __init__(self, arglist):
         self.rep = [] # [row0, row1, ..., rown]
+
+        self.repDQN = []
+        # self.repDQN = np.zeros((self.width, self.height, 4))
+
         self.arglist = arglist
         self.objects = defaultdict(lambda : [])
 
@@ -47,6 +51,20 @@ class World:
         # for obj in self.objects["Tomato"]:
         #     self.add_object(obj, obj.location)
         return self.rep
+    
+    def update_display_dqn(self):
+        # self.repDQN = np.zeros((self.width, self.height, 3))
+        self.repDQN = np.array()
+        for obj in self.objects.values():
+            x, y = obj.location
+            self.repDQN.append((y,x))
+            # if isinstance(obj, Food) or isinstance(obj, Plate):
+            #     self.repDQN[x, y, 0] = 1
+            # elif isinstance(obj, Floor):
+            #     self.repDQN[x, y, 1] = 1
+            # elif isinstance(obj, Counter):
+            #     self.repDQN[x, y, 2] = 1
+        return list(sum(self.repDQN.flatten, ()))
 
     def print_objects(self):
         for k, v in self.objects.items():

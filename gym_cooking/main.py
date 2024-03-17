@@ -60,6 +60,7 @@ def parse_arguments():
     parser.add_argument("--number-training", default=1, type=int, help="Number of episodes for training")
     parser.add_argument("--learning-rate", default=0.005, type=float, help="Learning rate of DQN")
     parser.add_argument("--game-play", default=2, type=int, help="Number of game play")
+    parser.add_argument("--num-nodes", default=256, type=int, help="Number of nodes in each layer of DQN")
 
 
     return parser.parse_args()
@@ -112,8 +113,9 @@ def roleAssignmentAlgorithm(typeUsed, num_agents):
             return [ChoppingWaiter(), ExceptionalChefMerger(), MergingWaiter()]
 
 
-def initialize_agents(arglist):
+def initialize_agents(arglist, state_size=0, action_size=0):
     real_agents = []
+    dqn_agents = []
 
     with open('utils/levels/{}.txt'.format(arglist.level), 'r') as f:
         phase = 1
@@ -121,6 +123,7 @@ def initialize_agents(arglist):
         index = 0
         finished = False
         actionLeft = []
+
         for line in f:
             line = line.strip('\n')
             if line == '':
@@ -143,7 +146,7 @@ def initialize_agents(arglist):
                     roleList = findSuitableRoles(actionLeft, arglist.num_agents)
                 else:
                     roleList = roleAssignmentAlgorithm(arglist.role, arglist.num_agents)
-                if (finished == False):
+                if (finished == False and not arglist.dqn):
                     loc = line.split(' ')
                     real_agent = RealAgent(
                         arglist=arglist,
@@ -157,7 +160,23 @@ def initialize_agents(arglist):
                     if len(real_agents) >= arglist.num_agents:
                         finished = True
                     index+=1
-    return real_agents
+                elif (finished == False and arglist.dqn):
+                    loc = line.split(' ')
+                    dqn_agent = DQNAgent(
+                        arglist=arglist,
+                        st_size=state_size,
+                        action_size=action_size,
+                        name='agent-'+str(len(dqn_agents)+1),
+                        color=COLORS[len(dqn_agents)],
+                        role=roleList[index]
+                    )
+                    dqn_agents.append(dqn_agent)
+                    if len(dqn_agents) >= arglist.num_agents:
+                        finished = True
+                    index += 1
+    if not arglist.dqn:
+        return real_agents
+    return dqn_agents
 
 def main_loop(arglist):
     """The main loop for running experiments."""
@@ -202,18 +221,12 @@ def dqn_main(arglist):
 
     dqnClass = mainAlgorithm(env, arglist)
     dqn_agents = []
-    role_list = []
 
-    for i in range(arglist.num_agents):
-        dqn_agents.append(DQNAgent(
-            arglist,
-            env.state_size, 
-            env.action_size, 
-            name='agent-'+str(len(dqn_agents)+1), 
-            id_color=COLORS[len(dqn_agents)],
-            role=role_list[i], 
-            )
-        )
+    state_size, action_size = env.world_size_action_size()
+
+    dqn_agents = initialize_agents(arglist, state_size, action_size)
+    
+    print(dqn_agents)
 
     dqnClass.run(dqn_agents)
     dones = []
