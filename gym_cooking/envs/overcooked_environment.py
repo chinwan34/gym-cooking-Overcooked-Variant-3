@@ -304,6 +304,8 @@ class OvercookedEnvironment(gym.Env):
         for sim_agent in self.sim_agents:
             sim_agent.action = action_dict[sim_agent.name]
         
+        self.check_collisions()
+        
         # Execute.
         self.execute_navigation()
 

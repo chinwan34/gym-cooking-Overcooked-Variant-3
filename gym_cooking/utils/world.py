@@ -54,8 +54,11 @@ class World:
     
     def update_display_dqn(self):
         # self.repDQN = np.zeros((self.width, self.height, 3))
-        self.repDQN = np.array()
-        for obj in self.objects.values():
+        self.repDQN = []
+        objs = []
+        for o in self.objects.values():
+            objs += o
+        for obj in objs:
             x, y = obj.location
             self.repDQN.append((y,x))
             # if isinstance(obj, Food) or isinstance(obj, Plate):
@@ -64,7 +67,7 @@ class World:
             #     self.repDQN[x, y, 1] = 1
             # elif isinstance(obj, Counter):
             #     self.repDQN[x, y, 2] = 1
-        return list(sum(self.repDQN.flatten, ()))
+        return list(sum(self.repDQN, ()))
 
     def print_objects(self):
         for k, v in self.objects.items():

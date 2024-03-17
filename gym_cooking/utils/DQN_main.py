@@ -27,6 +27,8 @@ class mainAlgorithm:
             done = False
             step = 0
             rewardTotal = 0
+            state = np.array(state)
+            state = state.ravel()
 
             while not done and step < self.max_timestep:
                 action_dict = {}
@@ -36,7 +38,7 @@ class mainAlgorithm:
                 
                 next_state, reward, done, info = self.environment.dqn_step(action_dict)
                 next_state = np.array(next_state)
-                # next_state = next_state.ravel()
+                next_state = next_state.ravel()
 
                 for agent in agents:
                     agent.observeTransition((state, action_dict, reward, next_state, done))

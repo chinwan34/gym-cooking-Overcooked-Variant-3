@@ -34,9 +34,9 @@ class DLModel:
         else:
             return self.targetModel.predict(state)
     
-    def max_Q_action(self, state, target):
+    def max_Q_action(self, state, target=False):
         # actions = self.predict(state.reshape(1, self.state_sizes))
-        actions = self.predict(np.array(state).reshape(1, self.state_sizes), target=target)
+        actions = self.predict(state.reshape(1, self.state_sizes), target=target)
         return np.argmax((actions.flatten()))
 
     def save_model(self):
