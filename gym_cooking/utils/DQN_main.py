@@ -58,7 +58,7 @@ class mainAlgorithm:
             rewards.append(rewardTotal)
             time_steps.append(step)
 
-            if episode % 2 == 0:
+            if episode % 100 == 0:
                 if rewardTotal > maxScore:
                     for agent in agents:
                         print("Got in episode for updates")

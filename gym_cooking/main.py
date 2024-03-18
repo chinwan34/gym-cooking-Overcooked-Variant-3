@@ -58,7 +58,7 @@ def parse_arguments():
     parser.add_argument("--update-frequency", type=int, default=10, help='The frequency of updates on target model')
     parser.add_argument("--replay", type=int, default=4, help="Steps difference for training")
     parser.add_argument("--number-training", default=10, type=int, help="Number of episodes for training")
-    parser.add_argument("--learning-rate", default=0.005, type=float, help="Learning rate of DQN")
+    parser.add_argument("--learning-rate", default=0.00005, type=float, help="Learning rate of DQN")
     parser.add_argument("--game-play", default=2, type=int, help="Number of game play")
     parser.add_argument("--num-nodes", default=256, type=int, help="Number of nodes in each layer of DQN")
 

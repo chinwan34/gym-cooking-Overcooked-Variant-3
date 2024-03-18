@@ -22,7 +22,7 @@ class DLModel:
         z =  Dense(self.action_sizes, activation='linear')(x2)
         model = Model(inputs=x, outputs=z)
 
-        model.compile(loss="MeanSquaredError", optimizer="RMSProp")
+        model.compile(loss="MeanSquaredError", optimizer=(tf.keras.optimizers.Adam(learning_rate=self.alpha)))
         
         return model
     
@@ -30,7 +30,7 @@ class DLModel:
         self.model.load_weights(self.name)
     
     def train_model(self, X, y, epochs=10, verbose=0):
-        history = self.model.fit(X, y, batch_size=len(X), epochs=epochs, verbose=verbose)
+        self.model.fit(X, y, batch_size=len(X), epochs=epochs, verbose=verbose)
 
     def predict(self, state, target=False):
         if not target:
