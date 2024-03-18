@@ -4,7 +4,7 @@ import numpy as np
 from utils.dlmodel import *
 
 class DQNAgent:
-    def __init__(self, arglist, st_size, action_size, name, color, role, agent_index, gamma=0.95, epsilon=0.05):
+    def __init__(self, arglist, st_size, action_size, name, color, role, agent_index, dlmodel_name, gamma=0.95, epsilon=0.05):
         self.name = name
         self.st_size = st_size
         self.action_size = action_size
@@ -16,13 +16,14 @@ class DQNAgent:
         self.epsilon_decay_rate = 0.98
         self.epsilon_minimum = 0
         self.agent_index = agent_index
+        self.dlmodel_name = dlmodel_name
         self.maxCapacity = arglist.maxCapacity
         self.batchSize = arglist.batch_size
         self.frequency = arglist.update_frequency
         self.current = 0
 
         self.memory = UER_memory(self.maxCapacity)
-        self.dlmodel = DLModel(self.st_size, self.action_size, "DLModel", arglist)
+        self.dlmodel = DLModel(self.st_size, self.action_size, self.dlmodel_name, arglist)
     
     def epsilon_greedy(self, state):
         """

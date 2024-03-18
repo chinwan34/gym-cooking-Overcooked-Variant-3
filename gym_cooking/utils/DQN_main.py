@@ -16,7 +16,7 @@ class mainAlgorithm:
         all_step = 0
         rewards = []
         time_steps = []
-        maxScore = 0
+        maxScore = float("-inf")
         for episode in range(self.num_training):
             state = self.environment.reset()
             
@@ -36,17 +36,18 @@ class mainAlgorithm:
                     action = agent.epsilon_greedy(state)
                     action_dict[agent.name] = action
                 
-                next_state, reward, done, info = self.environment.dqn_step(action_dict)
+                next_state, reward, doneUsed, info = self.environment.dqn_step(action_dict)
                 next_state = np.array(next_state)
                 next_state = next_state.ravel()
 
                 for agent in agents:
-                    agent.observeTransition((state, action_dict, reward, next_state, done))
+                    agent.observeTransition((state, action_dict, reward, next_state, doneUsed))
                     if all_step >= self.filling_step:
                         agent.epsilon_decay()
                         if step % self.replay_step == 0:
                             agent.replay()
-                        
+                        agent.update_target()
+                done = doneUsed
                 all_step += 1
                 step += 1
                 state = next_state
@@ -61,7 +62,7 @@ class mainAlgorithm:
                 if all_step >= self.replay_step:
                     if rewardTotal > maxScore:
                         for agent in agents:
-                            self.agent.dlmodel.save_model()               
+                            agent.dlmodel.save_model()               
                         maxScore = rewardTotal
             print("Score:{s} with Steps:{t}, Goal:{g}".format(s=rewardTotal, t=step, g=done))
 
@@ -70,6 +71,8 @@ class mainAlgorithm:
             agent.load_model_trained()
         
         state = self.environment.reset()
+        state = np.array(state)
+        state = state.ravel()
 
         done = False
         step = 0
@@ -83,7 +86,7 @@ class mainAlgorithm:
             
             next_state, reward, done, info = self.environment.dqn_step(action_dict)
             next_state = np.array(next_state)
-            # next_state = next_state.ravel()
+            next_state = next_state.ravel()
 
             rewardTotal += reward
         
@@ -98,7 +101,27 @@ class mainAlgorithm:
         self.set_alpha_and_epsilon(agents)
         for i in range(self.final_episodes):
             self.run(agents)
-            
+    
+    def set_filename(self, filename):
+        file = './utils/dqn_result/{}'.format(filename)
+        return file
+    
+    def filename_create_dlmodel(self):
+        filename = "agent-{}-learningRate_{}-games_{}-replay_{}-numTraining_{}-role_{}.h5".format(
+            "dqn", 
+            self.arglist.learning_rate,
+            self.arglist.game_play, 
+            self.arglist.replay,
+            self.arglist.number_training,
+            self.arglist.role,
+        )
+        return filename
+
+    def filename_create_result(self):
+        pass
+
+
+
 
 
     
