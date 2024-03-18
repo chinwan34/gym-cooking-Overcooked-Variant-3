@@ -26,8 +26,11 @@ class DLModel:
         
         return model
     
+    def non_test_weight_loading(self):
+        self.model.load_weights(self.name)
+    
     def train_model(self, X, y, epochs=10, verbose=0):
-        self.model.fit(X, y, batch_size=len(X), epochs=epochs, verbose=verbose)
+        history = self.model.fit(X, y, batch_size=len(X), epochs=epochs, verbose=verbose)
 
     def predict(self, state, target=False):
         if not target:

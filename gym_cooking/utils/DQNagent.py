@@ -75,6 +75,7 @@ class DQNAgent:
     
     def update_target(self):
         if self.current % self.frequency == 0:
+            print("Updating the target weights")
             self.dlmodel.update_target()
     
     def replay(self):
@@ -87,10 +88,13 @@ class DQNAgent:
         self.epsilon = 0
     
     def predict(self, state):
-        return self.dlmodel.max_Q_action(state)
+        return self.dlmodel.max_Q_action(state, target=True)
     
     def load_model_trained(self):
-        return self.dlmodel.load_model_trained()
+        self.dlmodel.non_test_weight_loading()
+        # return self.dlmodel.load_model_trained()
+
+    
     
 
 

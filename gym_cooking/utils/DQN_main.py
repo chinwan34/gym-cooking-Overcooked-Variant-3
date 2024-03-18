@@ -8,21 +8,18 @@ class mainAlgorithm:
         self.environment = environment
         self.num_training = self.arglist.number_training
         self.max_timestep = self.arglist.max_num_timesteps
-        self.filling_step = 15
+        self.filling_step = 0
         self.replay_step = self.arglist.replay
         self.final_episodes = 5
 
     def run(self, agents):
         all_step = 0
         rewards = []
+        previous_reward = 0
         time_steps = []
         maxScore = float("-inf")
         for episode in range(self.num_training):
             state = self.environment.reset()
-            
-            # May not be needed
-            # state = np.array(state)
-            # state = state.ravel()
         
             done = False
             step = 0
@@ -40,6 +37,7 @@ class mainAlgorithm:
                 next_state = np.array(next_state)
                 next_state = next_state.ravel()
 
+
                 for agent in agents:
                     agent.observeTransition((state, action_dict, reward, next_state, doneUsed))
                     if all_step >= self.filling_step:
@@ -47,24 +45,26 @@ class mainAlgorithm:
                         if step % self.replay_step == 0:
                             agent.replay()
                         agent.update_target()
+                
+                rewardTotal += reward
+                # previous_reward = reward
                 done = doneUsed
                 all_step += 1
                 step += 1
                 state = next_state
-                rewardTotal += reward
 
                 # Render here maybe
             
             rewards.append(rewardTotal)
             time_steps.append(step)
 
-            if episode % 100 == 0:
-                if all_step >= self.replay_step:
-                    if rewardTotal > maxScore:
-                        for agent in agents:
-                            agent.dlmodel.save_model()               
-                        maxScore = rewardTotal
-            print("Score:{s} with Steps:{t}, Goal:{g}".format(s=rewardTotal, t=step, g=done))
+            if episode % 2 == 0:
+                if rewardTotal > maxScore:
+                    for agent in agents:
+                        print("Got in episode for updates")
+                        agent.dlmodel.save_model()               
+                    maxScore = rewardTotal
+            print("Score:{s} with Steps:{t}, Goal:{g}".format(s=rewardTotal, t=step, g=self.environment.successful))
 
     def predict_game(self, agents):
         for agent in agents:
@@ -89,13 +89,13 @@ class mainAlgorithm:
             next_state = next_state.ravel()
 
             rewardTotal += reward
+            step += 1
         
-        return (done, rewardTotal, step)
+        return (done, rewardTotal, self.environment.successful)
             
     def set_alpha_and_epsilon(self, agents):
         for agent in agents:
             agent.set_alpha_and_epsilon()
-        
         
     def final(self, agents):
         self.set_alpha_and_epsilon(agents)
@@ -107,10 +107,9 @@ class mainAlgorithm:
         return file
     
     def filename_create_dlmodel(self):
-        filename = "agent-{}-learningRate_{}-games_{}-replay_{}-numTraining_{}-role_{}.h5".format(
+        filename = "agent-{}-learningRate_{}-replay_{}-numTraining_{}-role_{}.h5".format(
             "dqn", 
-            self.arglist.learning_rate,
-            self.arglist.game_play, 
+            self.arglist.learning_rate, 
             self.arglist.replay,
             self.arglist.number_training,
             self.arglist.role,

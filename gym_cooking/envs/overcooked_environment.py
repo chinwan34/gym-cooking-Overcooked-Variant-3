@@ -39,6 +39,9 @@ class OvercookedEnvironment(gym.Env):
         self.t = 0
         self.set_filename()
 
+        self.widthOfGame = 0
+        self.heightOfGame = 0
+
         
 
         # For visualizing episode.
@@ -166,6 +169,9 @@ class OvercookedEnvironment(gym.Env):
         self.world.height = y
         self.world.perimeter = 2*(self.world.width + self.world.height)
 
+        self.widthOfGame = x+1
+        self.heightOfGame = y
+
     def findSuitableRoles(self, actionsNotSatisfied, num_agents):
         listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), Frier()]
         listOfRoles2 = [ChoppingWaiter(), MergingWaiter(), CookingWaiter(), ExceptionalChef(), BakingWaiter(), FryingWaiter()]
@@ -217,6 +223,7 @@ class OvercookedEnvironment(gym.Env):
         # For visualizing episode.
         self.rep = []
         self.repDQN = []
+        self.repDQN_conv = np.zeros((self.widthOfGame, self.heightOfGame, 4))
 
         # For tracking data during an episode.
         self.collisions = []
@@ -249,11 +256,14 @@ class OvercookedEnvironment(gym.Env):
         if not self.arglist.dqn:
             return copy.copy(self)
         else:
+            self.update_display_DQN_conv()   
             self.update_display_DQN()
-            return self.repDQN
+            # return self.repDQN
+            return self.repDQN_conv
 
     def world_size_action_size(self):
-        return len(self.repDQN), 4
+        # return len(self.repDQN), 4
+        return len(self.repDQN_conv.flatten()), 4
 
     def close(self):
         return
@@ -314,19 +324,21 @@ class OvercookedEnvironment(gym.Env):
         self.execute_navigation()
 
         # May need to Visualize and store model
-        new_obs = copy.copy(self)
+        # new_obs = copy.copy(self)
 
         # States, rewards, done
         done = self.done()
         reward = self.dqn_reward()
         self.subtask_reduction()
-        self.update_display_DQN()
+        # self.update_display_DQN()
+        self.update_display_DQN_conv()
         self.update_display()
-        next_state = self.repDQN
+        # next_state = self.repDQN
+        next_state = self.repDQN_conv
 
         info = {
             "t": self.t,
-            "obs": new_obs,
+            # "obs": new_obs,
             "done": done, "termination_info": self.termination_info
         }
 
@@ -426,22 +438,25 @@ class OvercookedEnvironment(gym.Env):
         for subtask in self.subtasks_left:
             finishedSubtask, doneCheck = self.single_subtask_reduction(subtask)
             if finishedSubtask:
-                reward += 20
-                if doneCheck: reward += 100
-            start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
-            subtask_action_obj = nav_utils.get_subtask_action_obj(subtask)
-            distance = self.get_lower_bound_for_subtask_given_objs(
-                subtask, 
-                ["agent-1", "agent-2"],
-                start_obj,
-                goal_obj,
-                subtask_action_obj,
-            )
-            reward -= distance
+                reward += 10
+                if doneCheck: reward += 1000
+            else:
+                reward -= 1
+            # start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+            # subtask_action_obj = nav_utils.get_subtask_action_obj(subtask)
+            # distance = self.get_lower_bound_for_subtask_given_objs(
+            #     subtask, 
+            #     ["agent-1", "agent-2"],
+            #     start_obj,
+            #     goal_obj,
+            #     subtask_action_obj,
+            # )
+            # print(start_obj, goal_obj, distance)
+            # reward -= distance
 
-            bonus = self.holding_important_object(["agent-1", "agent-2"], subtask)
-            bonus2 = self.role_bonus(["agent-1", "agent-2"], subtask)
-            reward = reward + bonus + bonus2
+            # bonus = self.holding_important_object(["agent-1", "agent-2"], subtask)
+            # bonus2 = self.role_bonus(["agent-1", "agent-2"], subtask)
+            # reward = reward + bonus + bonus2
         
         return reward
 
@@ -466,6 +481,12 @@ class OvercookedEnvironment(gym.Env):
             # self.repDQN[x,y,3] = 1
             self.repDQN.append(y)
             self.repDQN.append(x)
+    
+    def update_display_DQN_conv(self):
+        self.repDQN_conv = self.world.update_display_dqn_conv(self.widthOfGame, self.heightOfGame)
+        for agent in self.sim_agents:
+            x, y = agent.location
+            self.repDQN_conv[x,y,3] = 1
 
     def get_agent_names(self):
         return [agent.name for agent in self.sim_agents]
