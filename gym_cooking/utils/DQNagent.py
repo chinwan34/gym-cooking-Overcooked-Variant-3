@@ -13,7 +13,7 @@ class DQNAgent:
         self.alpha = arglist.learning_rate
         self.gamma = gamma
         self.epsilon = epsilon
-        self.epsilon_decay_rate = 0.98
+        self.epsilon_decay_rate = 0.99
         self.epsilon_minimum = 0
         self.agent_index = agent_index
         self.dlmodel_name = dlmodel_name

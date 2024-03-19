@@ -22,7 +22,7 @@ class DLModel:
         z =  Dense(self.action_sizes, activation='linear')(x2)
         model = Model(inputs=x, outputs=z)
 
-        model.compile(loss="MeanSquaredError", optimizer=(tf.keras.optimizers.Adam(learning_rate=self.alpha)))
+        model.compile(loss="MeanSquaredError", optimizer="adam")
         
         return model
     

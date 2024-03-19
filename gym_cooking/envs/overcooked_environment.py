@@ -62,7 +62,11 @@ class OvercookedEnvironment(gym.Env):
         return '\n'.join(_display)
 
     def __eq__(self, other):
-        return self.get_repr() == other.get_repr()
+        return self.repDQN_conv == other.repDQN_conv
+        # return self.get_repr() == other.get_repr() or self.repDQN_conv == other.repDQN_conv
+    
+    def __hash__(self):
+        return self.repDQN_conv.__hash__()
 
     def __copy__(self):
         new_env = OvercookedEnvironment(self.arglist)
@@ -333,6 +337,9 @@ class OvercookedEnvironment(gym.Env):
         # self.update_display_DQN()
         self.update_display_DQN_conv()
         self.update_display()
+
+        if self.arglist.record:
+            self.game.save_image_obs(self.t)
         # next_state = self.repDQN
         next_state = self.repDQN_conv
 
@@ -439,7 +446,7 @@ class OvercookedEnvironment(gym.Env):
             finishedSubtask, doneCheck = self.single_subtask_reduction(subtask)
             if finishedSubtask:
                 reward += 10
-                if doneCheck: reward += 1000
+                if doneCheck: reward += 20
             else:
                 reward -= 1
             # start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)

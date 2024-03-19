@@ -19,6 +19,7 @@ class mainAlgorithm:
         time_steps = []
         maxScore = float("-inf")
         for episode in range(self.num_training):
+            print("EPISODE------------", episode, "-----------EPISODE")
             state = self.environment.reset()
         
             done = False
@@ -58,7 +59,7 @@ class mainAlgorithm:
             rewards.append(rewardTotal)
             time_steps.append(step)
 
-            if episode % 100 == 0:
+            if episode % 10 == 0:
                 if rewardTotal > maxScore:
                     for agent in agents:
                         print("Got in episode for updates")
