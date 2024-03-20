@@ -88,7 +88,7 @@ class DQNAgent:
         self.epsilon = 0
     
     def predict(self, state):
-        return self.dlmodel.max_Q_action(state, target=True)
+        return self.dlmodel.max_Q_action(state)
     
     def load_model_trained(self):
         self.dlmodel.non_test_weight_loading()

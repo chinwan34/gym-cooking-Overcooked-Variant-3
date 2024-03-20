@@ -89,10 +89,14 @@ class mainAlgorithm:
             next_state = np.array(next_state)
             next_state = next_state.ravel()
 
+            state = next_state
+
             rewardTotal += reward
             step += 1
         
-        return (done, rewardTotal, self.environment.successful)
+        print("Score:{s} with Steps:{t}, Goal:{g}".format(s=rewardTotal, t=step, g=self.environment.successful))
+        
+        return (self.environment.successful, rewardTotal, step)
             
     def set_alpha_and_epsilon(self, agents):
         for agent in agents:
