@@ -38,13 +38,17 @@ python -m pip install -e.
 cd gym_cooking
 ```
 
+### 1.2 Tensorflow
+
 To download the tensorflow for deep learning:
 
 ```
 python -m pip install tensorflow
 ```
 
-## Bayesian Delegation
+## 2.Bayesian Delegation
+
+### 2.1 Overall Structure
 
 The command structure has the following arguments:
 
@@ -69,6 +73,20 @@ The other parameters include `<number>` for the number of agents, `<level>` for 
 - `unbalanced` for slightly unbalanced work segregation,
 - `three` for optimal role separation design,
 - `none` for the original non-role specified simulation.
+
+### 2.2 Simulation Command
+
+If wanting to replicate the simulated results in the dissertation, please utilized only 2 agents, and with the levels in `very-easy`, `new-open`, `new-partial`. The four recipes are `tomato`, `salad`, `burger`, and `CF (Chicken and Fish)`. With the combinations of the above roles, can generate 60 results in total.
+
+For example, to run an `unbalanced` role allocaiton with `new-open` level and `burger` recipe, use the following:
+
+```
+python main.py --num-agents 2 --level new-open_burger --model1 bd --model2 bd --role unbalanced --record
+```
+
+The recorded screenshot at each time step is stored in `misc/game/record/{level name}`, reset at each run.
+
+### 2.3 Manual Play
 
 ## Usage
 
