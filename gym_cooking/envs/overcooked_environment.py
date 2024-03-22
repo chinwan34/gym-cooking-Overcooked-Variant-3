@@ -508,7 +508,6 @@ class OvercookedEnvironment(gym.Env):
         subtasks = self.sw.get_subtasks(max_path_length=self.arglist.max_num_subtasks)
         all_subtasks = [subtask for path in subtasks for subtask in path]
         print('Subtasks:', all_subtasks, '\n')
-        print(type(all_subtasks[0]))
         return all_subtasks
 
     def get_AB_locs_given_objs(self, subtask, subtask_agent_names, start_obj, goal_obj, subtask_action_obj):

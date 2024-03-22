@@ -28,6 +28,7 @@ class DQNAgent:
     def epsilon_greedy(self, state):
         """
         Epsilon-greedy on action selection
+        Need to implement legal action part 
         """
         value = random.randint(0, 1)
         if value < self.epsilon:
@@ -46,7 +47,6 @@ class DQNAgent:
     def y_i_update(self, batch_used):
         current_states = np.array([batch[0] for batch in batch_used])
         next_states = np.array([batch[3] for batch in batch_used])
-
         predict_current = self.dlmodel.predict(current_states)
         predict_next_target = self.dlmodel.predict(next_states, target=True)
 
@@ -55,17 +55,12 @@ class DQNAgent:
         errors = np.zeros(len(batch_used))
 
         for i in range(len(batch_used)):
-            cState = batch_used[i][0]
-            actionSelected = batch_used[i][1][self.name]
-            reward = batch_used[i][2]
-            done = batch_used[i][4]
+            cState, actionSelected, reward, done = batch_used[i][0], batch_used[i][1][self.name], batch_used[i][2], batch_used[i][4]
 
             t = predict_current[i]
             oldVal = t[actionSelected]
-            if done:
-                t[actionSelected] = reward
-            else:
-                t[actionSelected] = reward + self.gamma * np.max(predict_next_target[i])
+            if done: t[actionSelected] = reward
+            else: t[actionSelected] = reward + self.gamma * np.max(predict_next_target[i])
         
             x[i] = cState
             y[i] = t
@@ -75,7 +70,6 @@ class DQNAgent:
     
     def update_target(self):
         if self.current % self.frequency == 0:
-            print("Updating the target weights")
             self.dlmodel.update_target()
     
     def replay(self):
