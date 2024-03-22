@@ -4,13 +4,16 @@ For KCL BSc Computer Science (Artificial Intelligence) Dissertation
 
 Contents:
 
-- [0. Abstract](#0.Abstract)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Abstract](#0.Abstract)
+- [Installation](#1.installation)
+- [Bayesian Delegation](#BayesianDelegation)
+- [DQN](#DQN)
 - [Environments and Recipes](docs/environments.md)
 - [Design and Customization](docs/design.md)
 
 ## 0.Abstract
+
+The gifs are directly taken from the original "Too Many Cook!" Github repository, which can be accessed here: https://github.com/rosewang2008/gym-cooking
 
 <p align="center">
     <img src="images/2_open_salad.gif" width=260></img>
@@ -22,17 +25,27 @@ Multi-Agent Reinforcement Learning (MARL) is a topic long-discussed in machine l
 
 This project presents the specific implementation and evaluation of the role allocation algorithm on expanded action sets, covering the comparison between the original simulation, role-optimized solution, and other proposed solutions. Subsequently, the project explores the usage of Deep-Q Learning on multiple agents to compare performances and achieve a different way of agent training. To increase difficulty in agent coordination, the project also explored the possibility of resource scarcity and various agent execution algorithms in subtask selections.
 
-## Installation
+## 1.Installation
 
-You can install the dependencies with `pip3`:
+### 1.1 Create Environment
+
+Please try with pip3 / python3 if the following does not work on the machine.
 
 ```
-git clone https://github.com/rosewang2008/gym-cooking.git
-cd gym-cooking
-pip3 install -e .
+conda create -n OvercookedV3 python==3.7.16
+conda activate OvercookedV3
+python -m pip install -e.
+cd gym_cooking
+
 ```
 
-All experiments have been run with `python3`!
+To download the tensorflow for deep learning:
+
+```
+python -m pip install tensorflow
+```
+
+## Bayesian Delegation
 
 ## Usage
 
