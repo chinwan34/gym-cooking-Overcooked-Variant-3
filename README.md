@@ -88,6 +88,17 @@ The recorded screenshot at each time step is stored in `misc/game/record/{level 
 
 ### 2.3 Manual Play
 
+To manually control the agents with the pygame window, utilize the `--play` flag to the command. Pressing the number `1`, `2`, `3`, and `4` depending on the number of agents will change the agent that can be interacted.
+
+Warning: As the `very-easy` level is comparatively smaller to other environment, it did not specify four agent location, please only utilize `--num-agents 2` in command.
+For example, if wanting to play the `new-partial` level with the `CF` recipe, enter the following command:
+
+```
+python main.py --num-agents 2 --level new-partial_CF --role none --play
+```
+
+If would like to alter the level or create a new level, please create a new `txt` file and specify the 2D environment with the symbols in `core.py`, while specifying the recipe name and the agent location.
+
 ## Usage
 
 Here, we discuss how to run a single experiment, run our code in manual mode, and re-produce results in our paper. For information on customizing environments, observation/action spaces, and other details, please refer to our section on [Design and Customization](docs/design.md)
