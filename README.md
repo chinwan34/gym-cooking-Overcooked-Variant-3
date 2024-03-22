@@ -13,7 +13,7 @@ Contents:
 
 ## 0.Abstract
 
-The gifs are directly taken from the original "Too Many Cook!" Github repository, which can be accessed here: https://github.com/rosewang2008/gym-cooking
+The Gifs are directly taken from the original "Too Many Cook!" Github repository, which can be accessed here: https://github.com/rosewang2008/gym-cooking
 
 <p align="center">
     <img src="images/2_open_salad.gif" width=260></img>
@@ -36,7 +36,6 @@ conda create -n OvercookedV3 python==3.7.16
 conda activate OvercookedV3
 python -m pip install -e.
 cd gym_cooking
-
 ```
 
 To download the tensorflow for deep learning:
@@ -46,6 +45,30 @@ python -m pip install tensorflow
 ```
 
 ## Bayesian Delegation
+
+The command structure has the following arguments:
+
+```
+python main.py --num-agents <number> --level <level name> --model1 <model name> --model2 <model name> --model3 <model name> --model4 <model name> --role <role name> --record
+```
+
+In the original design, the agents were able to choose to run the different models, including:
+
+- `bd` to run Bayesian Delegation,
+- `up` for Uniform Priors,
+- `dc` for Divide & Conquer,
+- `fb` for Fixed Beliefs, and
+- `greedy` for Greedy.
+
+However, with the implementation of role differentiation, please run the structure with `bd` only to avoid system issues.
+
+The other parameters include `<number>` for the number of agents, `<level>` for specifying the level that is played, and `<role>`, which can be selected from the following:
+
+- `extreme` for single agents taking all the work,
+- `optimal` for the optimal role allocation,
+- `unbalanced` for slightly unbalanced work segregation,
+- `three` for optimal role separation design,
+- `none` for the original non-role specified simulation.
 
 ## Usage
 
