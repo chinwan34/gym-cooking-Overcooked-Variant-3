@@ -126,3 +126,22 @@ python make_graphs.py --legend --time-step
 The results will be stored in `gym_cooking/misc/metrics/graph_agents2`.
 
 ## 3.DQN
+
+### 3.1 Training
+
+The command line structure is similar to the BD algorithm, but with very different arguments:
+
+```
+python main.py --num_agents <number> --level <level name> --role <role name> --number-training <number> --game-play <number> --dqn
+```
+
+The `--number-training` specifies the number of episodes for the agents, and the `--game-play` represents the number of simulation after training. Some other commands that are optional include:
+
+- `--batch-size` for the sampling from UER memory,
+- `--num-nodes` for the number of neurons in the FNN,
+- `--learning-rate` for the alpha,
+- `--replay` for steps difference in training.
+
+It is also possible to set the `--record` after for visualisation; however, it is reset after every episode, so may not be as useful as in BD algorithm.
+
+### 3.2 Results Generation
