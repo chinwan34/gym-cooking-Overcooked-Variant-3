@@ -6,10 +6,10 @@ Contents:
 
 - [Abstract](#0.Abstract)
 - [Installation](#1.installation)
-- [Bayesian Delegation](#BayesianDelegation)
-- [DQN](#DQN)
-- [Environments and Recipes](docs/environments.md)
-- [Design and Customization](docs/design.md)
+- [Bayesian Delegation](#2.BayesianDelegation)
+- [DQN](#3.DQN)
+<!-- - [Environments and Recipes](docs/environments.md)
+- [Design and Customization](docs/design.md) -->
 
 ## 0.Abstract
 
@@ -49,6 +49,8 @@ python -m pip install tensorflow
 ## 2.Bayesian Delegation
 
 ### 2.1 Overall Structure
+
+Before starting, please ensure terminal is in the `gym_cooking` repository.
 
 The command structure has the following arguments:
 
@@ -99,77 +101,28 @@ python main.py --num-agents 2 --level new-partial_CF --role none --play
 
 If would like to alter the level or create a new level, please create a new `txt` file and specify the 2D environment with the symbols in `core.py`, while specifying the recipe name and the agent location.
 
-## Usage
+### 2.4 Results
 
-Here, we discuss how to run a single experiment, run our code in manual mode, and re-produce results in our paper. For information on customizing environments, observation/action spaces, and other details, please refer to our section on [Design and Customization](docs/design.md)
+If the `pkg` file for a particular run is present in `misc/metrics/pickles`, please delete before proceed on the simulation run, so it would be stored.
 
-For the code below, make sure that you are in **gym-cooking/gym_cooking/**. This means, you should be able to see the file `main.py` in your current directory.
+Navigate to the `gym_cooking/misc/metrics` directory with the following:
 
-<p align="center">
-    <img src="images/2_open.png" width=260></img>
-    <img src="images/3_partial.png" width=260></img>
-    <img src="images/4_full.png" width=260></img>
-</p>
+```
+cd gym_cooking/misc/metrics
+```
 
-### Running an experiment
+If wanting to generate the line graphs, run:
 
-The basic structure of our commands is the following:
+```
+python make_graphs.py --completion
+```
 
-`python main.py --num-agents <number> --level <level name> --model1 <model name> --model2 <model name> --model3 <model name> --model4 <model name>`
+To generate the legend graphs, run:
 
-where `<number>` is the number of agents interacting in the environment (we handle up to 4 agents), `level name` are the names of levels available under the directory `cooking/utils/levels`, omitting the `.txt`.
+```
+python make_graphs.py --legend --time-step
+```
 
-The `<model name>` are the names of models described in the paper. Specifically `<model name>` can be replaced with:
+The results will be stored in `gym_cooking/misc/metrics/graph_agents2`.
 
-- `bd` to run Bayesian Delegation,
-- `up` for Uniform Priors,
-- `dc` for Divide & Conquer,
-- `fb` for Fixed Beliefs, and
-- `greedy` for Greedy.
-
-For example, running the salad recipe on the partial divider with 2 agents using Bayesian Delegation looks like:
-`python main.py --num-agents 2 --level partial-divider_salad --model1 bd --model2 bd`
-
-Or, running the tomato-lettuce recipe on the full divider with 3 agents, one using UP, one with D&C, and the third with Bayesian Delegation:
-`python main.py --num-agents 2 --level full-divider_tl --model1 up --model2 dc --model3 bd`
-
-Although our work uses object-oriented representations for observations/states, the `OvercookedEnvironment.step` function returns _image observations_ in the `info` object. They can be retrieved with `info['image_obs']`.
-
-### Additional commands
-
-The above commands can also be appended with the following flags:
-
-- `--record` will save the observation at each time step as an image in `misc/game/record`.
-
-### Manual control
-
-To manually control agents and explore the environment, append the `--play` flag to the above commands. Specifying the model names isn't necessary but the level and the number of agents is still required. For instance, to manually control 2 agents with the salad task on the open divider, run:
-
-`python main.py --num-agents 2 --level open-divider_salad --play`
-
-This will open up the environment in Pygame. Only one agent can be controlled at a time -- the current active agent can be moved with the arrow keys and toggled by pressing `1`, `2`, `3`, or `4` (up until the actual number of agents of course). Hit the Enter key to save a timestamped image of the current screen to `misc/game/screenshots`.
-
-### Reproducing paper results
-
-To run our full suite of computational experiments (self-play and ad-hoc), we've provided the scrip `run_experiments.sh` that runs our experiments on 20 seeds with `2` agents.
-
-To run on `3` agents, modify `run_experiments.sh` with `num_agents=3`.
-
-### Creating visualizations
-
-To produce the graphs from our paper, navigate to the `gym_cooking/misc/metrics` directory, i.e.
-
-1. `cd gym_cooking/misc/metrics`.
-
-To generate the timestep and completion graphs, run:
-
-2. `python make_graphs.py --legend --time-step`
-3. `python make_graphs.py --legend --completion`
-
-This should generate the results figures that can be found in our paper.
-
-Results for homogenous teams (self-play experiments):
-![graphs](images/graphs.png)
-
-Results for heterogeneous teams (ad-hoc experiments):
-![heatmaps](images/heatmaps.png)
+## 3.DQN
