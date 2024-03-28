@@ -18,6 +18,9 @@ class World:
 
     def __init__(self, arglist):
         self.rep = [] # [row0, row1, ..., rown]
+
+        self.repDQN = []
+        self.repDQN_Conv = None
         self.arglist = arglist
         self.objects = defaultdict(lambda : [])
 
@@ -47,6 +50,33 @@ class World:
         # for obj in self.objects["Tomato"]:
         #     self.add_object(obj, obj.location)
         return self.rep
+    
+    def update_display_dqn(self):
+        # self.repDQN = np.zeros((self.width, self.height, 3))
+        self.repDQN = []
+        objs = []
+        for o in self.objects.values():
+            objs += o
+        for obj in objs:
+            x, y = obj.location
+            self.repDQN.append((y,x))
+        return list(sum(self.repDQN, ()))
+    
+    def update_display_dqn_conv(self, width, height):
+        self.repDQN_conv = np.zeros((width, height, 4))
+        objs = []
+        for o in self.objects.values():
+            objs += o
+        for obj in objs:
+            x, y = obj.location
+            if isinstance(obj, Food) or isinstance(obj, Plate):
+                self.repDQN_conv[x, y, 0] = 1
+            elif isinstance(obj, Floor):
+                self.repDQN_conv[x, y, 1] = 1
+            elif isinstance(obj, Counter):
+                self.repDQN_conv[x, y, 2] = 1
+        return self.repDQN_conv
+
 
     def print_objects(self):
         for k, v in self.objects.items():
@@ -304,6 +334,12 @@ class World:
         assert len(objs) == 1, "looking for {}, found {} at {}".format(desired_obj, ','.join(o.get_name() for o in objs), location)
 
         return objs[0]
+    
+    def is_object_at_location(self, location):
+        all_objs = self.get_object_list()
+        objs = list(filter(lambda o: o.location == location and (isinstance(o, Object) or isinstance(o, Food) or isinstance(o, Plate)), all_objs))
+        if objs: return True
+        return False
 
     def get_gridsquare_at(self, location):
         gss = list(filter(lambda o: o.location == location and\

@@ -4,8 +4,10 @@ from recipe_planner.recipe import *
 from utils.world import World
 from utils.agent import RealAgent, SimAgent, COLORS
 from utils.core import *
+from utils.DQN_main import mainAlgorithm
 from misc.game.gameplay import GamePlay
 from misc.metrics.metrics_bag import Bag
+from utils.DQNagent import *
 from random import randrange
 
 import numpy as np
@@ -48,6 +50,18 @@ def parse_arguments():
     parser.add_argument("--model2", type=str, default=None, help="Model type for agent 2 (bd, up, dc, fb, or greedy)")
     parser.add_argument("--model3", type=str, default=None, help="Model type for agent 3 (bd, up, dc, fb, or greedy)")
     parser.add_argument("--model4", type=str, default=None, help="Model type for agent 4 (bd, up, dc, fb, or greedy)")
+
+    # Arguments for DQN Learning
+    parser.add_argument("--dqn", action="store_true", default=False, help="Use DQN to train the agents")
+    parser.add_argument("--maxCapacity", type=int, default=100000, help="Maximum capacity of memory")
+    parser.add_argument("--batch-size", type=int, default=128, help="Batch size")
+    parser.add_argument("--update-frequency", type=int, default=10, help='The frequency of updates on target model')
+    parser.add_argument("--replay", type=int, default=4, help="Steps difference for training")
+    parser.add_argument("--number-training", default=10, type=int, help="Number of episodes for training")
+    parser.add_argument("--learning-rate", default=0.00025, type=float, help="Learning rate of DQN")
+    parser.add_argument("--game-play", default=2, type=int, help="Number of game play")
+    parser.add_argument("--num-nodes", default=64, type=int, help="Number of nodes in each layer of DQN")
+
 
     return parser.parse_args()
 
@@ -99,8 +113,9 @@ def roleAssignmentAlgorithm(typeUsed, num_agents):
             return [ChoppingWaiter(), ExceptionalChefMerger(), MergingWaiter()]
 
 
-def initialize_agents(arglist):
+def initialize_agents(arglist, state_size=0, action_size=0, dlmodel=None):
     real_agents = []
+    dqn_agents = []
 
     with open('utils/levels/{}.txt'.format(arglist.level), 'r') as f:
         phase = 1
@@ -108,6 +123,7 @@ def initialize_agents(arglist):
         index = 0
         finished = False
         actionLeft = []
+
         for line in f:
             line = line.strip('\n')
             if line == '':
@@ -130,7 +146,7 @@ def initialize_agents(arglist):
                     roleList = findSuitableRoles(actionLeft, arglist.num_agents)
                 else:
                     roleList = roleAssignmentAlgorithm(arglist.role, arglist.num_agents)
-                if (finished == False):
+                if (finished == False and not arglist.dqn):
                     loc = line.split(' ')
                     real_agent = RealAgent(
                         arglist=arglist,
@@ -144,7 +160,25 @@ def initialize_agents(arglist):
                     if len(real_agents) >= arglist.num_agents:
                         finished = True
                     index+=1
-    return real_agents
+                elif (finished == False and arglist.dqn):
+                    loc = line.split(' ')
+                    dqn_agent = DQNAgent(
+                        arglist=arglist,
+                        st_size=state_size,
+                        action_size=action_size,
+                        name='agent-'+str(len(dqn_agents)+1),
+                        color=COLORS[len(dqn_agents)],
+                        role=roleList[index],
+                        agent_index=len(dqn_agents),
+                        dlmodel_name=dlmodel
+                    )
+                    dqn_agents.append(dqn_agent)
+                    if len(dqn_agents) >= arglist.num_agents:
+                        finished = True
+                    index += 1
+    if not arglist.dqn:
+        return real_agents
+    return dqn_agents
 
 def main_loop(arglist):
     """The main loop for running experiments."""
@@ -179,6 +213,37 @@ def main_loop(arglist):
     bag.set_termination(termination_info=env.termination_info,
             successful=env.successful)
 
+def dqn_main(arglist):
+    """
+    The main DQN Loop.
+    """
+    print("Initializing environment and agents.")
+    env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
+    obs = env.reset()
+
+    dqnClass = mainAlgorithm(env, arglist)
+    dqn_agents = []
+
+    dlmodel_file = dqnClass.set_filename(dqnClass.filename_create_dlmodel())
+
+    state_size, action_size = env.world_size_action_size()
+
+    dqn_agents = initialize_agents(arglist, state_size, action_size, dlmodel_file)
+
+    dqnClass.run(dqn_agents)
+    dones = []
+    rewards = []
+    time_steps = []
+    for i in range(arglist.game_play):
+        (done, reward, step) = dqnClass.predict_game(dqn_agents)
+        dones.append(done)
+        rewards.append(reward)
+        time_steps.append(step)
+    
+    print("Average score: ", sum(rewards)/len(rewards))
+    print("Success Rate: ", dones.count(True)/len(dones))
+    print("Average Time-step", sum(time_steps)/len(time_steps))
+
 if __name__ == '__main__':
     arglist = parse_arguments()
     if arglist.play:
@@ -186,6 +251,8 @@ if __name__ == '__main__':
         env.reset()
         game = GamePlay(env.filename, env.world, env.sim_agents)
         game.on_execute()
+    elif arglist.dqn:
+        dqn_main(arglist)
     else:
         model_types = [arglist.model1, arglist.model2, arglist.model3, arglist.model4]
         assert len(list(filter(lambda x: x is not None,

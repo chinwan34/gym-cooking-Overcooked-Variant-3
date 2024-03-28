@@ -311,6 +311,7 @@ def plot_data(key, path_save, df, num_agents, legend=False):
             if key == 'time_steps' or key == 'priors':
                 plt.axhline(y = time_steps_optimal[num_agents][map_][recipe], ls='--', color='black')
 
+
             plt.savefig(os.path.join(path_save, "{}_{}_{}.png".format(key, recipe, map_)))
             plt.close()
 

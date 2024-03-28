@@ -39,10 +39,14 @@ class OvercookedEnvironment(gym.Env):
         self.t = 0
         self.set_filename()
 
+        self.widthOfGame = 0
+        self.heightOfGame = 0
+
         
 
         # For visualizing episode.
         self.rep = []
+        self.repDQN = []
 
         # For tracking data during an episode.
         self.collisions = []
@@ -58,7 +62,11 @@ class OvercookedEnvironment(gym.Env):
         return '\n'.join(_display)
 
     def __eq__(self, other):
-        return self.get_repr() == other.get_repr()
+        return self.repDQN_conv == other.repDQN_conv
+        # return self.get_repr() == other.get_repr() or self.repDQN_conv == other.repDQN_conv
+    
+    def __hash__(self):
+        return self.repDQN_conv.__hash__()
 
     def __copy__(self):
         new_env = OvercookedEnvironment(self.arglist)
@@ -165,6 +173,9 @@ class OvercookedEnvironment(gym.Env):
         self.world.height = y
         self.world.perimeter = 2*(self.world.width + self.world.height)
 
+        self.widthOfGame = x+1
+        self.heightOfGame = y
+
     def findSuitableRoles(self, actionsNotSatisfied, num_agents):
         listOfRoles = [Merger(), Chopper(), Deliverer(), Baker(), Cooker(), Cleaner(), Frier()]
         listOfRoles2 = [ChoppingWaiter(), MergingWaiter(), CookingWaiter(), ExceptionalChef(), BakingWaiter(), FryingWaiter()]
@@ -215,6 +226,8 @@ class OvercookedEnvironment(gym.Env):
 
         # For visualizing episode.
         self.rep = []
+        self.repDQN = []
+        self.repDQN_conv = np.zeros((self.widthOfGame, self.heightOfGame, 4))
 
         # For tracking data during an episode.
         self.collisions = []
@@ -229,6 +242,7 @@ class OvercookedEnvironment(gym.Env):
                 num_agents=self.arglist.num_agents)
         print("On env.reset location")
         self.all_subtasks = self.run_recipes()
+        self.subtasks_left = self.all_subtasks
         self.world.make_loc_to_gridsquare()
         self.world.make_reachability_graph()
         self.cache_distances()
@@ -243,8 +257,17 @@ class OvercookedEnvironment(gym.Env):
             self.game.on_init()
             if self.arglist.record:
                 self.game.save_image_obs(self.t)
+        if not self.arglist.dqn:
+            return copy.copy(self)
+        else:
+            self.update_display_DQN_conv()   
+            self.update_display_DQN()
+            # return self.repDQN
+            return self.repDQN_conv
 
-        return copy.copy(self)
+    def world_size_action_size(self):
+        # return len(self.repDQN), 4
+        return len(self.repDQN_conv.flatten()), 4
 
     def close(self):
         return
@@ -285,6 +308,104 @@ class OvercookedEnvironment(gym.Env):
                 "done": done, "termination_info": self.termination_info}
         return new_obs, reward, done, info
 
+    def dqn_step(self, action_dict):
+        self.t += 1
+        print("===============================")
+        print("[environment.step] @ TIMESTEP {}".format(self.t))
+        print("===============================")
+
+        # Choose actions, may not to fix sim_agents representation
+        print(action_dict)
+
+        actions_available = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for sim_agent in self.sim_agents:
+            if not isinstance(action_dict[sim_agent.name], tuple):
+                sim_agent.action = actions_available[action_dict[sim_agent.name]]
+            else:
+                sim_agent.action = action_dict[sim_agent.name]
+        
+        # Execute.
+        self.execute_navigation()
+
+        # May need to Visualize and store model
+        # new_obs = copy.copy(self)
+
+        # States, rewards, done
+        done = self.done()
+        reward = self.dqn_reward()
+        self.subtask_reduction()
+        # self.update_display_DQN()
+        self.update_display_DQN_conv()
+        self.update_display()
+
+        if self.arglist.record:
+            self.game.save_image_obs(self.t)
+        # next_state = self.repDQN
+        next_state = self.repDQN_conv
+
+        info = {
+            "t": self.t,
+            # "obs": new_obs,
+            "done": done, "termination_info": self.termination_info
+        }
+
+        return next_state, reward, done, info
+
+    def subtask_reduction(self):
+        delete = []
+        for subtask in self.subtasks_left:
+            _, goal_obj = nav_utils.get_subtask_obj(subtask)
+            goal_obj_locs = self.world.get_all_object_locs(obj=goal_obj)
+            delivery_loc = list(filter(lambda o: o.name=='Delivery', self.world.get_object_list()))[0].location
+            if isinstance(subtask, recipe.Deliver):
+                if any([gol == delivery_loc for gol in goal_obj_locs]):
+                    delete.append(subtask)
+            elif len(goal_obj_locs) != 0:
+                delete.append(subtask)
+        
+        if len(delete) > 0:
+            self.subtasks_left.remove(delete[0])     
+            return True
+        return False  
+    
+    def single_subtask_reduction(self, subtask):
+        doneCheck = False
+        _, goal_obj = nav_utils.get_subtask_obj(subtask)
+        goal_obj_locs = self.world.get_all_object_locs(obj=goal_obj)
+        delivery_loc = list(filter(lambda o: o.name=='Delivery', self.world.get_object_list()))[0].location
+        if isinstance(subtask, recipe.Deliver):
+             if any([gol == delivery_loc for gol in goal_obj_locs]):
+                 doneCheck = True
+                 return True, doneCheck
+        elif len(goal_obj_locs) != 0:
+            return True, doneCheck
+        return False, doneCheck
+
+    def holding_important_object(self, subtask_agent_names, subtask):
+        bonus = 0
+        start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+        for agent in self.sim_agents:
+            if agent.name in subtask_agent_names:
+                if agent.holding == start_obj:
+                    bonus += 1
+                elif agent.holding == goal_obj:
+                    bonus += 5
+        return bonus
+    
+    def role_bonus(self, subtask_agent_names, subtask):
+        bonus = 0
+        start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+        for agent in self.sim_agents:
+            if agent.name in subtask_agent_names:
+                if any([isinstance(subtask, action) for action in agent.role.probableActions]):
+                    if agent.holding == start_obj: bonus += 2
+                    if agent.holding == goal_obj: bonus += 5
+                else:
+                    if agent.holding == start_obj: bonus -= 2
+                    if agent.holding == goal_obj: bonus -= 5
+        
+        return bonus
+
 
     def done(self):
         # Done if the episode maxes out
@@ -316,6 +437,36 @@ class OvercookedEnvironment(gym.Env):
     def reward(self):
         return 1 if self.successful else 0
 
+    def dqn_reward(self):
+        """
+        I wrote this.
+        """
+        reward = 0
+        for subtask in self.subtasks_left:
+            finishedSubtask, doneCheck = self.single_subtask_reduction(subtask)
+            if finishedSubtask:
+                reward += 10
+                if doneCheck: reward += 20
+            else:
+                reward -= 1
+            # start_obj, goal_obj = nav_utils.get_subtask_obj(subtask)
+            # subtask_action_obj = nav_utils.get_subtask_action_obj(subtask)
+            # distance = self.get_lower_bound_for_subtask_given_objs(
+            #     subtask, 
+            #     ["agent-1", "agent-2"],
+            #     start_obj,
+            #     goal_obj,
+            #     subtask_action_obj,
+            # )
+            # print(start_obj, goal_obj, distance)
+            # reward -= distance
+
+            # bonus = self.holding_important_object(["agent-1", "agent-2"], subtask)
+            # bonus2 = self.role_bonus(["agent-1", "agent-2"], subtask)
+            # reward = reward + bonus + bonus2
+        
+        return reward
+
     def print_agents(self):
         for sim_agent in self.sim_agents:
             sim_agent.print_status()
@@ -330,6 +481,19 @@ class OvercookedEnvironment(gym.Env):
             x, y = agent.location
             self.rep[y][x] = str(agent)
 
+    def update_display_DQN(self):
+        self.repDQN = self.world.update_display_dqn()
+        for agent in self.sim_agents:
+            x, y = agent.location
+            # self.repDQN[x,y,3] = 1
+            self.repDQN.append(y)
+            self.repDQN.append(x)
+    
+    def update_display_DQN_conv(self):
+        self.repDQN_conv = self.world.update_display_dqn_conv(self.widthOfGame, self.heightOfGame)
+        for agent in self.sim_agents:
+            x, y = agent.location
+            self.repDQN_conv[x,y,3] = 1
 
     def get_agent_names(self):
         return [agent.name for agent in self.sim_agents]
@@ -449,6 +613,26 @@ class OvercookedEnvironment(gym.Env):
 
     def nextLocationBase(self, agent_action, currentLocation):
         return self.world.get_gridsquare_at(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))
+    
+    def legal_actions(self, agent_name):
+        actions = [(0,1), (0,-1), (1,0), (-1,0)]
+        legal_actions = []
+        for agent in self.sim_agents:
+            if agent.name == agent_name:
+                if agent.holding:
+                    return actions
+                else:
+                    for action in actions:
+                        if self.world.is_object_at_location(location=tuple(np.asarray(agent.location) + np.asarray(action))):
+                            legal_actions.append(action)
+                        if isinstance(self.nextLocationBase(action, agent.location), Floor):
+                            if action not in legal_actions:
+                                legal_actions.append(action)
+        
+        if not legal_actions: legal_actions.append(random.choice(actions))
+        return legal_actions
+                    
+
 
     def is_occupied_location(self, agent_action, currentLocation):
         return self.world.is_occupied(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action))) or self.world.is_delivery(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))

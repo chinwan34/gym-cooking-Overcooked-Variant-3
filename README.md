@@ -1,18 +1,19 @@
-# Code for OvercookedEnvironment (gym-cooking) and "Too many cooks: Bayesian inference for coordinating multi-agent collaboration"
+# Overcooked! - Develop diverse cooking tasks for multi-agent cooperation – Variant 3
 
-[[Full paper]](https://arxiv.org/abs/2003.11778) [[Journal paper]](https://onlinelibrary.wiley.com/doi/10.1111/tops.12525) [[Video]](https://www.youtube.com/watch?v=Fd4RcVaNthY&ab_channel=RoseWang)
-
-Code for "Too many cooks: Bayesian inference for coordinating multi-agent collaboration", Winner of the CogSci 2020 Computational Modeling Prize in High Cognition, and a NeurIPS 2020 CoopAI Workshop Best Paper. 
-
+For KCL BSc Computer Science (Artificial Intelligence) Dissertation
 
 Contents:
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Environments and Recipes](docs/environments.md)
-- [Design and Customization](docs/design.md)
 
-## Introduction
+- [Abstract](#0.Abstract)
+- [Installation](#1.installation)
+- [Bayesian Delegation](#2.BayesianDelegation)
+- [DQN](#3.DQN)
+<!-- - [Environments and Recipes](docs/environments.md)
+- [Design and Customization](docs/design.md) -->
+
+## 0.Abstract
+
+The Gifs are directly taken from the original "Too Many Cook!" Github repository, which can be accessed here: https://github.com/rosewang2008/gym-cooking
 
 <p align="center">
     <img src="images/2_open_salad.gif" width=260></img>
@@ -20,103 +21,127 @@ Contents:
     <img src="images/2_full_salad.gif" width=260></img>
 </p>
 
-Collaboration requires agents to coordinate their behavior on the fly, sometimes cooperating to solve a single task together and other times dividing it up into sub-tasks to work on in parallel. Underlying the human ability to collaborate is theory-of-mind, the ability to infer the hidden mental states that drive others to act. Here, we develop Bayesian Delegation, a decentralized multi-agent learning mechanism with these abilities. Bayesian Delegation enables agents to rapidly infer the hidden intentions of others by inverse planning. We test Bayesian Delegation in a suite of multi-agent Markov decision processes inspired by cooking problems. On these tasks, agents with Bayesian Delegation coordinate both their high-level plans (e.g. what sub-task they should work on) and their low-level actions (e.g. avoiding getting in each other’s way). In a self-play evaluation, Bayesian Delegation outperforms alternative algorithms. Bayesian Delegation is also a capable ad-hoc collaborator and successfully coordinates with other agent types even in the absence of prior experience. Finally, in a behavioral experiment, we show that Bayesian Delegation makes inferences similar to human observers about the intent of others. Together, these results demonstrate the power of Bayesian Delegation for decentralized multi-agent collaboration.
+Multi-Agent Reinforcement Learning (MARL) is a topic long-discussed in machine learning research, which covers various applications ranging from healthcare systems to automated logistics design. With a publication "Too Many Cooks!" \cite{mitOvercooked} carried out by MIT and Harvard students that discusses agent coordination in partially observable situations, this project expands upon the concept of "Role Differentiation", attempting to observe the effect of different algorithms on role allocation and its impact on the original algorithm for subtask achievements.
 
-You can use this bibtex if you would like to cite this work (Wu and Wang et al., 2021):
-```
-@article{wu_wang2021too,
-  author = {Wu, Sarah A. and Wang, Rose E. and Evans, James A. and Tenenbaum, Joshua B. and Parkes, David C. and Kleiman-Weiner, Max},
-  title = {Too many cooks: Coordinating multi-agent collaboration through inverse planning},
-  journal = {Topics in Cognitive Science},
-  year = {2021},
-  volume = {n/a},
-  number = {n/a},
-  keywords = {Coordination, Social learning, Inverse planning, Bayesian inference, Multi-agent reinforcement learning},
-  doi = {https://doi.org/10.1111/tops.12525},
-  url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/tops.12525},
-}
-```
+This project presents the specific implementation and evaluation of the role allocation algorithm on expanded action sets, covering the comparison between the original simulation, role-optimized solution, and other proposed solutions. Subsequently, the project explores the usage of Deep-Q Learning on multiple agents to compare performances and achieve a different way of agent training. To increase difficulty in agent coordination, the project also explored the possibility of resource scarcity and various agent execution algorithms in subtask selections.
 
-## Installation
+## 1.Installation
 
-You can install the dependencies with `pip3`:
+### 1.1 Create Environment
+
+Please try with pip3 / python3 if the following does not work on the machine.
+
 ```
-git clone https://github.com/rosewang2008/gym-cooking.git
-cd gym-cooking
-pip3 install -e .
+conda create -n OvercookedV3 python==3.7.16
+conda activate OvercookedV3
+python -m pip install -e.
+cd gym_cooking
 ```
 
-All experiments have been run with `python3`! 
+### 1.2 Tensorflow
 
-## Usage 
+To download the tensorflow for deep learning:
 
-Here, we discuss how to run a single experiment, run our code in manual mode, and re-produce results in our paper. For information on customizing environments, observation/action spaces, and other details, please refer to our section on [Design and Customization](docs/design.md)
+```
+python -m pip install tensorflow
+```
 
-For the code below, make sure that you are in **gym-cooking/gym_cooking/**. This means, you should be able to see the file `main.py` in your current directory.
+## 2.Bayesian Delegation
 
-<p align="center">
-    <img src="images/2_open.png" width=260></img>
-    <img src="images/3_partial.png" width=260></img>
-    <img src="images/4_full.png" width=260></img>
-</p>
+### 2.1 Overall Structure
 
-### Running an experiment 
+Before starting, please ensure terminal is in the `gym_cooking` repository.
 
-The basic structure of our commands is the following:
+The command structure has the following arguments:
 
-`python main.py --num-agents <number> --level <level name> --model1 <model name> --model2 <model name> --model3 <model name> --model4 <model name>`
+```
+python main.py --num-agents <number> --level <level name> --model1 <model name> --model2 <model name> --model3 <model name> --model4 <model name> --role <role name> --record
+```
 
-where `<number>` is the number of agents interacting in the environment (we handle up to 4 agents), `level name` are the names of levels available under the directory `cooking/utils/levels`, omitting the `.txt`.
+In the original design, the agents were able to choose to run the different models, including:
 
-The `<model name>` are the names of models described in the paper. Specifically `<model name>` can be replaced with:
-* `bd` to run Bayesian Delegation,
-* `up` for Uniform Priors,
-* `dc` for Divide & Conquer,
-* `fb` for Fixed Beliefs, and 
-* `greedy` for Greedy.
+- `bd` to run Bayesian Delegation,
+- `up` for Uniform Priors,
+- `dc` for Divide & Conquer,
+- `fb` for Fixed Beliefs, and
+- `greedy` for Greedy.
 
-For example, running the salad recipe on the partial divider with 2 agents using Bayesian Delegation looks like:
-`python main.py --num-agents 2 --level partial-divider_salad --model1 bd --model2 bd`
+However, with the implementation of role differentiation, please run the structure with `bd` only to avoid system issues.
 
-Or, running the tomato-lettuce recipe on the full divider with 3 agents, one using UP, one with D&C, and the third with Bayesian Delegation:
-`python main.py --num-agents 2 --level full-divider_tl --model1 up --model2 dc --model3 bd`
+The other parameters include `<number>` for the number of agents, `<level>` for specifying the level that is played, and `<role>`, which can be selected from the following:
 
-Although our work uses object-oriented representations for observations/states, the `OvercookedEnvironment.step` function returns *image observations* in the `info` object. They can be retrieved with `info['image_obs']`.  
+- `extreme` for single agents taking all the work,
+- `optimal` for the optimal role allocation,
+- `unbalanced` for slightly unbalanced work segregation,
+- `three` for optimal role separation design,
+- `none` for the original non-role specified simulation.
 
-### Additional commands
+### 2.2 Simulation Command
 
-The above commands can also be appended with the following flags:
-* `--record` will save the observation at each time step as an image in `misc/game/record`.
+If wanting to replicate the simulated results in the dissertation, please utilized only 2 agents, and with the levels in `very-easy`, `new-open`, `new-partial`. The four recipes are `tomato`, `salad`, `burger`, and `CF (Chicken and Fish)`. With the combinations of the above roles, can generate 60 results in total.
 
-### Manual control
+For example, to run an `unbalanced` role allocaiton with `new-open` level and `burger` recipe, use the following:
 
-To manually control agents and explore the environment, append the `--play` flag to the above commands. Specifying the model names isn't necessary but the level and the number of agents is still required. For instance, to manually control 2 agents with the salad task on the open divider, run:
+```
+python main.py --num-agents 2 --level new-open_burger --model1 bd --model2 bd --role unbalanced --record
+```
 
-`python main.py --num-agents 2 --level open-divider_salad --play`
+The recorded screenshot at each time step is stored in `misc/game/record/{level name}`, reset at each run.
 
-This will open up the environment in Pygame. Only one agent can be controlled at a time -- the current active agent can be moved with the arrow keys and toggled by pressing `1`, `2`, `3`, or `4` (up until the actual number of agents of course). Hit the Enter key to save a timestamped image of the current screen to `misc/game/screenshots`.
+### 2.3 Manual Play
 
-### Reproducing paper results
+To manually control the agents with the pygame window, utilize the `--play` flag to the command. Pressing the number `1`, `2`, `3`, and `4` depending on the number of agents will change the agent that can be interacted.
 
-To run our full suite of computational experiments (self-play and ad-hoc), we've provided the scrip `run_experiments.sh` that runs our experiments on 20 seeds with `2` agents.
+Warning: As the `very-easy` level is comparatively smaller to other environment, it did not specify four agent location, please only utilize `--num-agents 2` in command.
+For example, if wanting to play the `new-partial` level with the `CF` recipe, enter the following command:
 
-To run on `3` agents, modify `run_experiments.sh` with `num_agents=3`.
+```
+python main.py --num-agents 2 --level new-partial_CF --role none --play
+```
 
-### Creating visualizations
+If would like to alter the level or create a new level, please create a new `txt` file and specify the 2D environment with the symbols in `core.py`, while specifying the recipe name and the agent location.
 
-To produce the graphs from our paper, navigate to the `gym_cooking/misc/metrics` directory, i.e. 
+### 2.4 Results
 
-1. `cd gym_cooking/misc/metrics`.
+If the `pkg` file for a particular run is present in `misc/metrics/pickles`, please delete before proceed on the simulation run, so it would be stored.
 
-To generate the timestep and completion graphs, run:
+Navigate to the `gym_cooking/misc/metrics` directory with the following:
 
-2. `python make_graphs.py --legend --time-step`
-3. `python make_graphs.py --legend --completion`
+```
+cd gym_cooking/misc/metrics
+```
 
-This should generate the results figures that can be found in our paper.
+If wanting to generate the line graphs, run:
 
-Results for homogenous teams (self-play experiments):
-![graphs](images/graphs.png)
+```
+python make_graphs.py --completion
+```
 
-Results for heterogeneous teams (ad-hoc experiments):
-![heatmaps](images/heatmaps.png)
+To generate the legend graphs, run:
+
+```
+python make_graphs.py --legend --time-step
+```
+
+The results will be stored in `gym_cooking/misc/metrics/graph_agents2`.
+
+## 3.DQN
+
+### 3.1 Training
+
+The command line structure is similar to the BD algorithm, but with very different arguments:
+
+```
+python main.py --num_agents <number> --level <level name> --role <role name> --number-training <number> --game-play <number> --dqn
+```
+
+The `--number-training` specifies the number of episodes for the agents, and the `--game-play` represents the number of simulation after training. Some other commands that are optional include:
+
+- `--batch-size` for the sampling from UER memory,
+- `--num-nodes` for the number of neurons in the FNN,
+- `--learning-rate` for the alpha,
+- `--replay` for steps difference in training.
+
+It is also possible to set the `--record` after for visualisation; however, it is reset after every episode, so may not be as useful as in BD algorithm.
+
+### 3.2 Results Generation
