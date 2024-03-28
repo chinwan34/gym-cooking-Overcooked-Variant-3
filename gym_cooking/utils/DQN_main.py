@@ -35,7 +35,6 @@ class mainAlgorithm:
                     agent.legal_actions(legalActions)
 
                     action = agent.epsilon_greedy(state)
-                    print(action, agent.name, "Actual")
                     action_dict[agent.name] = action
                 
                 next_state, reward, doneUsed, info = self.environment.dqn_step(action_dict)

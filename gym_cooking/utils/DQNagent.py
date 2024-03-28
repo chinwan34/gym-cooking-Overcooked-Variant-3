@@ -4,7 +4,7 @@ import numpy as np
 from utils.dlmodel import *
 
 class DQNAgent:
-    def __init__(self, arglist, st_size, action_size, name, color, role, agent_index, dlmodel_name, gamma=0.95, epsilon=0.05):
+    def __init__(self, arglist, st_size, action_size, name, color, role, agent_index, dlmodel_name, gamma=0.95, epsilon=0.8):
         self.name = name
         self.st_size = st_size
         self.action_size = action_size
@@ -26,6 +26,10 @@ class DQNAgent:
         self.dlmodel = DLModel(self.st_size, self.action_size, self.dlmodel_name, arglist)
 
         self.plausibleActions = []
+
+        self.maxEpsilon = 0.8
+        self.minEpsilon = 0.02
+        self.maxExplorationSteps = 20000000
     
     def legal_actions(self, legalActions):
         self.plausibleActions.clear()
@@ -46,9 +50,12 @@ class DQNAgent:
             return self.dlmodel.max_Q_action(state, self.plausibleActions)
 
     def epsilon_decay(self):
+        # self.current += 1
+        # if self.epsilon > self.epsilon_minimum:
+        #     self.epsilon = self.epsilon * self.epsilon_decay_rate
         self.current += 1
-        if self.epsilon > self.epsilon_minimum:
-            self.epsilon = self.epsilon * self.epsilon_decay_rate
+        if self.current < self.maxExplorationSteps:
+            self.epsilon = (self.maxEpsilon - self.minEpsilon) * ((self.maxExplorationSteps - self.current)/self.maxExplorationSteps) + self.minEpsilon
     
     def observeTransition(self, transition):
         self.memory.store_transition(transition)
