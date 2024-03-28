@@ -334,6 +334,12 @@ class World:
         assert len(objs) == 1, "looking for {}, found {} at {}".format(desired_obj, ','.join(o.get_name() for o in objs), location)
 
         return objs[0]
+    
+    def is_object_at_location(self, location):
+        all_objs = self.get_object_list()
+        objs = list(filter(lambda o: o.location == location and (isinstance(o, Object) or isinstance(o, Food) or isinstance(o, Plate)), all_objs))
+        if objs: return True
+        return False
 
     def get_gridsquare_at(self, location):
         gss = list(filter(lambda o: o.location == location and\

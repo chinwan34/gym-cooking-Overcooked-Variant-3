@@ -38,11 +38,23 @@ class DLModel:
         else:
             return self.targetModel.predict(state)
     
-    def max_Q_action(self, state, target=False):
+    def max_Q_action(self, state, legalActions, target=False):
         # actions = self.predict(state.reshape(1, self.state_sizes))
         actions = self.predict(state.reshape(1, self.state_sizes), target=target)
-        
-        return np.argmax((actions.flatten()))
+
+        finalList = actions.flatten()
+        maxIndex = 1000
+        maxValue = float("-inf")
+
+        for i in range(len(finalList)):
+            if i not in legalActions:
+                continue
+            else:
+                if finalList[i] > maxValue:
+                    maxIndex = i
+        return maxIndex
+
+        # return np.argmax((actions.flatten()))
 
     def save_model(self):
         self.model.save(self.name)

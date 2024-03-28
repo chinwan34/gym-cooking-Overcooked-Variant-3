@@ -31,7 +31,11 @@ class mainAlgorithm:
             while not done and step < self.max_timestep:
                 action_dict = {}
                 for agent in agents:
+                    legalActions = self.environment.legal_actions(agent.name)
+                    agent.legal_actions(legalActions)
+
                     action = agent.epsilon_greedy(state)
+                    print(action, agent.name, "Actual")
                     action_dict[agent.name] = action
                 
                 next_state, reward, doneUsed, info = self.environment.dqn_step(action_dict)
@@ -82,6 +86,9 @@ class mainAlgorithm:
         while not done and step < self.max_timestep:
             action_dict = {}
             for agent in agents:
+                legalActions = self.environment.legal_actions(agent.name)
+                agent.legal_actions(legalActions)
+
                 action = agent.predict(state)
                 action_dict[agent.name] = action
             

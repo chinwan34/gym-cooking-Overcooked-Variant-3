@@ -613,6 +613,26 @@ class OvercookedEnvironment(gym.Env):
 
     def nextLocationBase(self, agent_action, currentLocation):
         return self.world.get_gridsquare_at(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))
+    
+    def legal_actions(self, agent_name):
+        actions = [(0,1), (0,-1), (1,0), (-1,0)]
+        legal_actions = []
+        for agent in self.sim_agents:
+            if agent.name == agent_name:
+                if agent.holding:
+                    return actions
+                else:
+                    for action in actions:
+                        if self.world.is_object_at_location(location=tuple(np.asarray(agent.location) + np.asarray(action))):
+                            legal_actions.append(action)
+                        if isinstance(self.nextLocationBase(action, agent.location), Floor):
+                            if action not in legal_actions:
+                                legal_actions.append(action)
+        
+        if not legal_actions: legal_actions.append(random.choice(actions))
+        return legal_actions
+                    
+
 
     def is_occupied_location(self, agent_action, currentLocation):
         return self.world.is_occupied(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action))) or self.world.is_delivery(location=tuple(np.asarray(currentLocation) + np.asarray(agent_action)))

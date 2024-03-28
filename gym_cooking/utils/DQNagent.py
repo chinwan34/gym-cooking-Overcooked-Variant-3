@@ -24,7 +24,16 @@ class DQNAgent:
 
         self.memory = UER_memory(self.maxCapacity)
         self.dlmodel = DLModel(self.st_size, self.action_size, self.dlmodel_name, arglist)
+
+        self.plausibleActions = []
     
+    def legal_actions(self, legalActions):
+        self.plausibleActions.clear()
+        actions_available = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for action in legalActions:
+            self.plausibleActions.append(actions_available.index(action))
+        print(self.plausibleActions)
+
     def epsilon_greedy(self, state):
         """
         Epsilon-greedy on action selection
@@ -32,9 +41,9 @@ class DQNAgent:
         """
         value = random.randint(0, 1)
         if value < self.epsilon:
-            return random.choice([0, 1, 2, 3])
+            return random.choice(self.plausibleActions)
         else:
-            return self.dlmodel.max_Q_action(state)
+            return self.dlmodel.max_Q_action(state, self.plausibleActions)
 
     def epsilon_decay(self):
         self.current += 1
@@ -82,7 +91,7 @@ class DQNAgent:
         self.epsilon = 0
     
     def predict(self, state):
-        return self.dlmodel.max_Q_action(state)
+        return self.dlmodel.max_Q_action(state, self.plausibleActions)
     
     def load_model_trained(self):
         self.dlmodel.non_test_weight_loading()
